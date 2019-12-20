@@ -1,0 +1,81 @@
+version: 2.1
+
+description: |
+  A set of utilities for controlling CircleCI workflows & builds.
+
+executors:
+  basic:
+    resource_class: small
+    docker:
+      - image: circleci/buildpack-deps:buster-curl
+
+commands:
+  cancel-older-awaiting-approvals:
+    description: |
+      Cancel all older pipelines waiting on manual approval.
+      Depends on jq being present.
+    parameters:
+      token:
+        description: |
+          The env var containing CircleCI API token that can read builds for the project (either a user or project API token will work).
+          Pass this as a literal string such as `$CIRCLE_TOKEN`.
+          Do not paste the actual token into your configuration.
+        type: string
+      vcs:
+        description: |
+          Defaults to "gh", but allows other version control systems.
+        type: string
+        default: gh
+    steps:
+      - run:
+          name: Cancel older pipelines waiting on manual approval.
+          command: |
+            set -eo pipefail
+
+            BASE_URL="https://circleci.com/api/v2"
+            TOKEN="circle-token=<< parameters.token >>"
+
+            CURRENT_WORKFLOW=$(curl -s -H "Accept: application/json" "${BASE_URL}/workflow/${CIRCLE_WORKFLOW_ID}?${TOKEN}")
+            CURRENT_WORKFLOW_TIMESTAMP=$(echo $CURRENT_WORKFLOW | jq -r ".created_at")
+            echo "Current workflow start time: ${CURRENT_WORKFLOW_TIMESTAMP}"
+
+            PROJECT_SLUG="project/<< parameters.vcs >>%2F${CIRCLE_PROJECT_USERNAME}%2F${CIRCLE_PROJECT_REPONAME}"
+            PIPELINE_IDS=$(curl -s -H "Accept: application/json" "${BASE_URL}/${PROJECT_SLUG}/pipeline?${TOKEN}" | jq -r ".items[].id")
+
+            for PIPELINE_ID in $PIPELINE_IDS; do
+              WORKFLOW=$(curl -s -H "Accept: application/json" "${BASE_URL}/pipeline/${PIPELINE_ID}/workflow?${TOKEN}" | jq ".items[0]")
+
+              WORKFLOW_ID=$(echo $WORKFLOW | jq -r ".id")
+              WORKFLOW_STATUS=$(echo $WORKFLOW | jq -r ".status")
+              WORKFLOW_CREATION_TIMESTAMP=$(echo $WORKFLOW | jq -r ".created_at")
+
+              echo "Workflow data: ${WORKFLOW_ID}, ${WORKFLOW_STATUS}, ${WORKFLOW_CREATION_TIMESTAMP}"
+
+              if [[ $WORKFLOW_CREATION_TIMESTAMP < $CURRENT_WORKFLOW_TIMESTAMP && "$WORKFLOW_STATUS" == "on_hold" ]]; then
+                echo "Canceling older workflow waiting for manual approval: ${WORKFLOW_ID}"
+                $(curl -s -X POST -H "Accept: application/json" "${BASE_URL}/workflow/${WORKFLOW_ID}/cancel?${TOKEN}")
+              fi
+            done
+
+jobs:
+  cancel-older-awaiting-approvals:
+    description: |
+      Cancel all older pipelines waiting on manual approval.
+      Depends on jq being present.
+    parameters:
+      token:
+        description: |
+          The env var containing CircleCI API token that can read builds for the project (either a user or project API token will work).
+          Pass this as a literal string such as `$CIRCLE_TOKEN`.
+          Do not paste the actual token into your configuration.
+        type: string
+      vcs:
+        description: |
+          Defaults to "gh", but allows other version control systems.
+        type: string
+        default: gh
+    executor: basic
+    steps:
+      - cancel-older-awaiting-approvals:
+          token: << parameters.token >>
+          vcs: << parameters.vcs >>
