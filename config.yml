@@ -91,8 +91,10 @@ commands:
       EMAIL_DOMAIN:
         description: |
           Optional email domain for users within the workspace.   Must be specified if user aliases are not fully qualified.
+        type: string
         default: coda.io
       SLACK_BOT_TOKEN:
+        type: string
         description: |
           Token used by Slack bot application.   Must have scopes `users:read`, `users:read.email`, and `chat:write`.
       vcs:
@@ -204,8 +206,10 @@ jobs:
       EMAIL_DOMAIN:
         description: |
           Optional email domain for users within the workspace.   Must be specified if user aliases are not fully qualified.
+        type: string
         default: coda.io
       SLACK_BOT_TOKEN:
+        type: string
         description: |
           Token used by Slack bot application.   Must have scopes `users:read`, `users:read.email`, and `chat:write`.
       vcs:

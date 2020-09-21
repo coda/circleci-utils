@@ -4,9 +4,9 @@ executors:
   validate:
     resource_class: small
     docker:
-      - image: circleci/buildpack-deps:buster-curl
+      - image: circleci/circleci-cli:latest
 jobs:
-  plan:
+  validate:
     executor: validate
     steps:
       - checkout
