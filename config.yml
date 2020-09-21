@@ -110,9 +110,9 @@ commands:
 
             USER_ALIAS=$(curl -s -H "Authorization: Bearer ${CODA_API_TOKEN}" \
               -G --data-urlencode "query=<< parameters.CODA_CIRCLECI_USER_NAME_COL >>:\"${CIRCLE_USERNAME}\"" \
-              << parameters.CODA_USER_ROSTER_TABLE_URL >>' \
+              '<< parameters.CODA_USER_ROSTER_TABLE_URL >>' \
               | jq '.items[0].values."<< parameters.CODA_CIRCLECI_USER_ALIAS_COL >>"' | tr -d '"')@${EMAIL_DOMAIN}
-            USER_EMAIL=$([[ "${USER_ALIAS}" == *@* ]] && echo "$USER_ALIAS" || echo "${USER_ALIAS}@${EMAIL_DOMAIN}"
+            USER_EMAIL=$([[ "${USER_ALIAS}" == *@* ]] && echo "$USER_ALIAS" || echo "${USER_ALIAS}@${EMAIL_DOMAIN}")
             SLACK_USER_ID=$(curl -s -H "Authorization: Bearer ${SLACK_BOT_TOKEN}" \
               https://slack.com/api/users.lookupByEmail?email=${USER_EMAIL} \
               | jq '.user.id' | tr -d '"')
