@@ -1,0 +1,22 @@
+version: 2.1
+
+executors:
+  validate:
+    resource_class: small
+    docker:
+      - image: circleci/buildpack-deps:buster-curl
+jobs:
+  plan:
+    executor: validate
+    steps:
+      - checkout
+      - run:
+          name: "Validate ORB config"
+          command: circleci orb validate config.yml
+
+workflows:
+  version: 2
+  commit_validation:
+    jobs:
+      - validate
+
