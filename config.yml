@@ -148,6 +148,49 @@ commands:
                 ] \
               }" \
               'https://slack.com/api/chat.postMessage'
+  enrich-username-with-email:
+    description: |
+      Update the circleci triggered username with their coda email.
+
+    parameters:
+      CODA_USER_ROSTER_TABLE_URL:
+        description: |
+          Fully qualified API URL to a table containing CIRCLECI_USERNAMEs to email aliases.    Must be of the form
+          https://coda.io/apis/v1/docs/<DOCID>/tables/<TABLEID>/rows.
+        type: string
+        default: https://staging.coda.io/apis/v1/docs/s2i6oFeghW/tables/grid-QGyaiXZDwu/rows
+      CODA_API_TOKEN:
+        description: |
+          Env var of a token granted read access to the CODA_USER_ROSTER_TABLE_URL document.
+        type: string
+      CODA_CIRCLECI_USER_NAME_COL:
+        description: |
+          Coda columnId of the column storing the CircleCI username.
+        type: string
+        default: c-6ni4kHGNwE
+      CODA_CIRCLECI_USER_ALIAS_COL:
+        description: |
+          Coda columnId of the column storing the user alias (when using EMAIL_DOMAIN), or fully qualified email.
+        type: string
+        default: c-26If9Zttyp
+      EMAIL_DOMAIN:
+        description: |
+          Optional email domain for users within the workspace.   Must be specified if user aliases are not fully qualified.
+        type: string
+        default: coda.io
+        
+    steps:
+      - run:
+          name: Fetch Coda Email From Github Handle
+          command: |
+            set -eo pipefail
+
+            USER_ALIAS=$(curl -s -H "Authorization: Bearer << parameters.CODA_API_TOKEN >" \
+              -G --data-urlencode "query=<< parameters.CODA_CIRCLECI_USER_NAME_COL >>:\"${CIRCLE_USERNAME}\"" \
+              '<< parameters.CODA_USER_ROSTER_TABLE_URL >>' \
+              | jq '.items[0].values."<< parameters.CODA_CIRCLECI_USER_ALIAS_COL >>"' | tr -d '"')
+            USER_EMAIL=$([[ "${USER_ALIAS}" == *@* ]] && echo "$USER_ALIAS" || echo "${USER_ALIAS}@<< parameters.EMAIL_DOMAIN >>")
+            CIRCLECI_USERNAME="${CIRCLECI_USERNAME (on behalf-of ${COMMIT_USER_EMAIL}}"
 
 jobs:
   cancel-older-awaiting-approvals:
@@ -227,3 +270,45 @@ jobs:
           EMAIL_DOMAIN: << parameters.EMAIL_DOMAIN >>
           SLACK_BOT_TOKEN: << parameters.SLACK_BOT_TOKEN >>
           vcs: << parameters.vcs >>
+  enrich-username-with-email:
+    description: |
+    Retrieve the corresponding email of the committer. 
+    Setup:
+      1. Create Coda document with a table containing columns `circleci alias` (ex: github username) and `email`, and populate this table with information for each github user.
+      3. Find the docId, tableId, and columnIds for the circleci user alias and email columnIds.
+      4. Create a Coda API token for this document at https://coda.io/account - limit the token to read access to the target table.
+      5. Configure orb based on required args
+  parameters:
+    CODA_USER_ROSTER_TABLE_URL:
+      description: |
+        Fully qualified API URL to a table containing CIRCLECI_USERNAME to email aliases.    Must be of the form
+        https://coda.io/apis/v1/docs/<DOCID>/tables/<TABLEID>/rows.
+      type: string
+      default: https://staging.coda.io/apis/v1/docs/s2i6oFeghW/tables/grid-QGyaiXZDwu/rows
+    CODA_API_TOKEN:
+      description: |
+        Env var of a token granted read access to the CODA_USER_ROSTER_TABLE_URL document.
+      type: string
+    CODA_CIRCLECI_USER_NAME_COL:
+      description: |
+        Coda columnId of the column storing the CircelCI username (typically github alias).
+      type: string
+      default: c-6ni4kHGNwE
+    CODA_CIRCLECI_USER_ALIAS_COL:
+      description: |
+        Coda columnId of the column storing the user alias (if using EMAIL_DOMAIN), or fully qualified email.
+      type: string
+      default: c-26If9Zttyp
+    EMAIL_DOMAIN:
+      description: |
+        Optional email domain for users within the workspace.   Must be specified if user aliases are not fully qualified.
+      type: string
+      default: coda.io
+  executor: basic
+  steps:
+    - enrich-username-with-email:
+        CODA_API_TOKEN: << parameters.CODA_API_TOKEN >>
+        CODA_CIRCLECI_USER_ALIAS_COL: << parameters.CODA_CIRCLECI_USER_ALIAS_COL >>
+        CODA_CIRCLECI_USER_NAME_COL: << parameters.CODA_CIRCLECI_USER_NAME_COL >>
+        CODA_USER_ROSTER_TABLE_URL: << parameters.CODA_USER_ROSTER_TABLE_URL >>
+        EMAIL_DOMAIN: << parameters.EMAIL_DOMAIN >>
