@@ -1,0 +1,302 @@
+version: 2.1
+description: |
+    Coda Util orb; get coda user information and send to opsgenie
+display:
+    source_url: https://github.com/kr-project/circleci-utils
+commands:
+    get-lkg: {}
+    grab-email:
+        description: |
+            This command grabs a codan email from CircleCI Username and sets it as USER_EMAIL
+        parameters:
+            CODA_API_TOKEN:
+                description: |
+                    Env var of a token granted read access to the CODA_USER_ROSTER_TABLE_URL document.
+                type: string
+            CODA_CIRCLECI_USER_ALIAS_COL:
+                default: c-26If9Zttyp
+                description: |
+                    Coda columnId of the column storing the user alias (when using EMAIL_DOMAIN), or fully qualified email.
+                type: string
+            CODA_CIRCLECI_USER_NAME_COL:
+                default: c-6ni4kHGNwE
+                description: |
+                    Coda columnId of the column storing the CircleCI username.
+                type: string
+            CODA_USER_ROSTER_TABLE_URL:
+                default: https://staging.coda.io/apis/v1/docs/s2i6oFeghW/tables/grid-QGyaiXZDwu/rows
+                description: |
+                    Fully qualified API URL to a table containing CIRCLECI_USERNAMEs to email aliases.    Must be of the form
+                    https://coda.io/apis/v1/docs/<DOCID>/tables/<TABLEID>/rows.
+                type: string
+            EMAIL_DOMAIN:
+                default: coda.io
+                description: |
+                    Optional email domain for users within the workspace.   Must be specified if user aliases are not fully qualified.
+                type: string
+        steps:
+            - run:
+                command: |-
+                    set -eo pipefail
+                    USER_ALIAS=$(curl -s -H "Authorization: Bearer ${CODA_API_TOKEN}" \
+                    -G --data-urlencode "query=c-6ni4kHGNwE:\"${CIRCLE_USERNAME}\"" \
+                    'https://staging.coda.io/apis/v1/docs/s2i6oFeghW/tables/grid-QGyaiXZDwu/rows' \
+                    | jq '.items[0].values."c-26If9Zttyp"' | tr -d '"')
+                    if [ $USER_ALIAS != "null" ]; then
+                      USER_EMAIL=$([[ "${USER_ALIAS}" == *@* ]] && echo "$USER_ALIAS" || echo "${USER_ALIAS}@coda.io")
+                      echo "export USER_EMAIL=${USER_EMAIL}" >> $BASH_ENV
+                    else
+                      echo "export USER_EMAIL=''" >> $BASH_ENV
+                    fi
+                name: Get User Email
+    notify:
+        description: |
+            This command grabs a codan email from CircleCI Username and sets it as USER_EMAIL
+        parameters:
+            CODA_API_TOKEN:
+                description: |
+                    Env var of a token granted read access to the CODA_USER_ROSTER_TABLE_URL document.
+                type: string
+            CODA_CIRCLECI_USER_ALIAS_COL:
+                default: c-26If9Zttyp
+                description: |
+                    Coda columnId of the column storing the user alias (when using EMAIL_DOMAIN), or fully qualified email.
+                type: string
+            CODA_CIRCLECI_USER_NAME_COL:
+                default: c-6ni4kHGNwE
+                description: |
+                    Coda columnId of the column storing the CircleCI username.
+                type: string
+            CODA_USER_ROSTER_TABLE_URL:
+                default: https://staging.coda.io/apis/v1/docs/s2i6oFeghW/tables/grid-QGyaiXZDwu/rows
+                description: |
+                    Fully qualified API URL to a table containing CIRCLECI_USERNAMEs to email aliases.    Must be of the form
+                    https://coda.io/apis/v1/docs/<DOCID>/tables/<TABLEID>/rows.
+                type: string
+            EMAIL_DOMAIN:
+                default: coda.io
+                description: |
+                    Optional email domain for users within the workspace.   Must be specified if user aliases are not fully qualified.
+                type: string
+        steps:
+            - run:
+                command: |-
+                    set -eo pipefail
+                    USER_ALIAS=$(curl -s -H "Authorization: Bearer ${CODA_API_TOKEN}" \
+                    -G --data-urlencode "query=c-6ni4kHGNwE:\"${CIRCLE_USERNAME}\"" \
+                    'https://staging.coda.io/apis/v1/docs/s2i6oFeghW/tables/grid-QGyaiXZDwu/rows' \
+                    | jq '.items[0].values."c-26If9Zttyp"' | tr -d '"')
+                    if [ $USER_ALIAS != "null" ]; then
+                      USER_EMAIL=$([[ "${USER_ALIAS}" == *@* ]] && echo "$USER_ALIAS" || echo "${USER_ALIAS}@coda.io")
+                      echo "export USER_EMAIL=${USER_EMAIL}" >> $BASH_ENV
+                    fi
+                name: Get User Email
+    slack-notify-waiting-for-approval:
+        description: |
+            Notifies the current workflow owner that their workflow is pending approval to proceed.
+            Depends on jq being present.
+
+            Setup:
+              1. Create Coda document with a table containing columns `circleci alias` (ex: github username) and `email`, and populate this table with information for each github user.
+              3. Find the docId, tableId, and columnIds for the circleci user alias and email columnIds.
+              4. Create a Coda API token for this document at https://coda.io/account - limit the token to read access to the target table.
+              5. Setup a Slack Bot account with scopes `users:read`, `users:read.email`, and `chat:write`.
+              6. Configure orb based on required args
+        parameters:
+            CODA_API_TOKEN:
+                description: |
+                    Env var of a token granted read access to the CODA_USER_ROSTER_TABLE_URL document.
+                type: string
+            CODA_CIRCLECI_USER_ALIAS_COL:
+                default: c-26If9Zttyp
+                description: |
+                    Coda columnId of the column storing the user alias (when using EMAIL_DOMAIN), or fully qualified email.
+                type: string
+            CODA_CIRCLECI_USER_NAME_COL:
+                default: c-6ni4kHGNwE
+                description: |
+                    Coda columnId of the column storing the CircleCI username.
+                type: string
+            CODA_USER_ROSTER_TABLE_URL:
+                default: https://staging.coda.io/apis/v1/docs/s2i6oFeghW/tables/grid-QGyaiXZDwu/rows
+                description: |
+                    Fully qualified API URL to a table containing CIRCLECI_USERNAMEs to email aliases.    Must be of the form
+                    https://coda.io/apis/v1/docs/<DOCID>/tables/<TABLEID>/rows.
+                type: string
+            EMAIL_DOMAIN:
+                default: coda.io
+                description: |
+                    Optional email domain for users within the workspace.   Must be specified if user aliases are not fully qualified.
+                type: string
+            SLACK_BOT_TOKEN:
+                description: |
+                    Token used by Slack bot application.   Must have scopes `users:read`, `users:read.email`, and `chat:write`.
+                type: string
+            vcs:
+                default: gh
+                description: |
+                    Defaults to "gh", but allows other version control systems.
+                type: string
+        steps:
+            - run:
+                command: |-
+                    set -eo pipefail
+
+                    USER_ALIAS=$(curl -s -H "Authorization: Bearer << parameters.CODA_API_TOKEN >>" \
+                      -G --data-urlencode "query=<< parameters.CODA_CIRCLECI_USER_NAME_COL >>:\"${CIRCLE_USERNAME}\"" \
+                      '<< parameters.CODA_USER_ROSTER_TABLE_URL >>' \
+                      | jq '.items[0].values."<< parameters.CODA_CIRCLECI_USER_ALIAS_COL >>"' | tr -d '"')
+                    USER_EMAIL=$([[ "${USER_ALIAS}" == *@* ]] && echo "$USER_ALIAS" || echo "${USER_ALIAS}@<< parameters.EMAIL_DOMAIN >>")
+                    SLACK_USER_ID=$(curl -s -H "Authorization: Bearer << parameters.SLACK_BOT_TOKEN >>" \
+                      https://slack.com/api/users.lookupByEmail?email=${USER_EMAIL} \
+                      | jq '.user.id' | tr -d '"')
+
+                    curl -X POST -H "Authorization: Bearer << parameters.SLACK_BOT_TOKEN >>" \
+                      -H "Content-Type: application/json" -d \
+                      "{ \
+                        \"channel\": \"${SLACK_USER_ID}\", \
+                        \"attachments\": [ \
+                          { \
+                            \"text\": \"Pending Approval for ${CIRCLE_PROJECT_REPONAME} push (${CIRCLE_USERNAME})\", \
+                            \"fields\": [ \
+                              { \
+                                \"title\": \"Project\", \
+                                \"value\": \"${CIRCLE_PROJECT_REPONAME}\", \
+                                \"short\": true \
+                              }, \
+                              { \
+                                \"title\": \"Job Number\", \
+                                \"value\": \"${CIRCLE_BUILD_NUM}\", \
+                                \"short\": true \
+                              } \
+                            ], \
+                            \"actions\": [ \
+                              { \
+                                \"type\": \"button\", \
+                                \"text\": \"Visit Workflow\", \
+                                \"url\": \"https://circleci.com/workflow-run/${CIRCLE_WORKFLOW_ID}\" \
+                              } \
+                            ], \
+                            \"color\": \"#f46a54\" \
+                          } \
+                        ] \
+                      }" \
+                      'https://slack.com/api/chat.postMessage'
+                name: Fetch Slack Handle For Github Handle
+executors:
+    default:
+        description: |
+            Default executor
+        docker:
+            - image: circleci/buildpack-deps:buster-curl
+jobs:
+    notify-opsgenie:
+        description: |
+            Notify opsgenie through API of circleci failure/success
+        executor: default
+        parameters:
+            CODA_API_TOKEN:
+                description: |
+                    Env var of a token granted read access to the CODA_USER_ROSTER_TABLE_URL document.
+                type: string
+            CODA_CIRCLECI_USER_ALIAS_COL:
+                default: c-26If9Zttyp
+                description: |
+                    Coda columnId of the column storing the user alias (when using EMAIL_DOMAIN), or fully qualified email.
+                type: string
+            CODA_CIRCLECI_USER_NAME_COL:
+                default: c-6ni4kHGNwE
+                description: |
+                    Coda columnId of the column storing the CircleCI username.
+                type: string
+            CODA_USER_ROSTER_TABLE_URL:
+                default: https://staging.coda.io/apis/v1/docs/s2i6oFeghW/tables/grid-QGyaiXZDwu/rows
+                description: |
+                    Fully qualified API URL to a table containing CIRCLECI_USERNAMEs to email aliases.    Must be of the form
+                    https://coda.io/apis/v1/docs/<DOCID>/tables/<TABLEID>/rows.
+                type: string
+            EMAIL_DOMAIN:
+                default: coda.io
+                description: |
+                    Optional email domain for users within the workspace.   Must be specified if user aliases are not fully qualified.
+                type: string
+        steps:
+            - grab-email:
+                CODA_API_TOKEN: << parameters.CODA_API_TOKEN >>
+                CODA_CIRCLECI_USER_ALIAS_COL: << parameters.CODA_CIRCLECI_USER_ALIAS_COL >>
+                CODA_CIRCLECI_USER_NAME_COL: << parameters.CODA_CIRCLECI_USER_NAME_COL >>
+                CODA_USER_ROSTER_TABLE_URL: << parameters.CODA_USER_ROSTER_TABLE_URL >>
+                EMAIL_DOMAIN: << parameters.EMAIL_DOMAIN >>
+            - notify:
+                diff_url: $DIFF_URL
+                email: $USER_EMAIL
+                on_failure: true
+    slack-notify-waiting-for-approval:
+        description: |
+            Notifies the current workflow owner that their workflow is pending approval to proceed.
+            Depends on jq being present.
+
+            Setup:
+              1. Create Coda document with a table containing columns `circleci alias` (ex: github username) and `email`, and populate this table with information for each github user.
+              3. Find the docId, tableId, and columnIds for the circleci user alias and email columnIds.
+              4. Create a Coda API token for this document at https://coda.io/account - limit the token to read access to the target table.
+              5. Setup a Slack Bot account with scopes `users:read`, `users:read.email`, and `chat:write`.
+              6. Configure orb based on required args
+        executor: basic
+        parameters:
+            CODA_API_TOKEN:
+                description: |
+                    Env var of a token granted read access to the CODA_USER_ROSTER_TABLE_URL document.
+                type: string
+            CODA_CIRCLECI_USER_ALIAS_COL:
+                default: c-26If9Zttyp
+                description: |
+                    Coda columnId of the column storing the user alias (if using EMAIL_DOMAIN), or fully qualified email.
+                type: string
+            CODA_CIRCLECI_USER_NAME_COL:
+                default: c-6ni4kHGNwE
+                description: |
+                    Coda columnId of the column storing the CircelCI username (typically github alias).
+                type: string
+            CODA_USER_ROSTER_TABLE_URL:
+                default: https://staging.coda.io/apis/v1/docs/s2i6oFeghW/tables/grid-QGyaiXZDwu/rows
+                description: |
+                    Fully qualified API URL to a table containing CIRCLECI_USERNAME to email aliases.    Must be of the form
+                    https://coda.io/apis/v1/docs/<DOCID>/tables/<TABLEID>/rows.
+                type: string
+            EMAIL_DOMAIN:
+                default: coda.io
+                description: |
+                    Optional email domain for users within the workspace.   Must be specified if user aliases are not fully qualified.
+                type: string
+            SLACK_BOT_TOKEN:
+                description: |
+                    Token used by Slack bot application.   Must have scopes `users:read`, `users:read.email`, and `chat:write`.
+                type: string
+            vcs:
+                default: gh
+                description: |
+                    Defaults to "gh", but allows other version control systems.
+                type: string
+        steps:
+            - slack-notify-waiting-for-approval:
+                CODA_API_TOKEN: << parameters.CODA_API_TOKEN >>
+                CODA_CIRCLECI_USER_ALIAS_COL: << parameters.CODA_CIRCLECI_USER_ALIAS_COL >>
+                CODA_CIRCLECI_USER_NAME_COL: << parameters.CODA_CIRCLECI_USER_NAME_COL >>
+                CODA_USER_ROSTER_TABLE_URL: << parameters.CODA_USER_ROSTER_TABLE_URL >>
+                EMAIL_DOMAIN: << parameters.EMAIL_DOMAIN >>
+                SLACK_BOT_TOKEN: << parameters.SLACK_BOT_TOKEN >>
+                vcs: << parameters.vcs >>
+examples:
+    example:
+        description: |
+            Sample example description.
+        usage:
+            version: "2.1"
+            orbs:
+                <orb-name>: <namespace>/<orb-name>@1.2.3
+            workflows:
+                use-my-orb:
+                    jobs:
+                        - <orb-name>/<job-name>
+
