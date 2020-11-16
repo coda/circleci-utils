@@ -1,43 +1,78 @@
-description: >
-  This command grabs a codan email from CircleCI Username and sets it as USER_EMAIL
-
+description: Send build results to Opsgenie API, with detailed information
 parameters:
-  CODA_USER_ROSTER_TABLE_URL:
-    description: |
-      Fully qualified API URL to a table containing CIRCLECI_USERNAMEs to email aliases.    Must be of the form
-      https://coda.io/apis/v1/docs/<DOCID>/tables/<TABLEID>/rows.
+  email:
+    default: ""
+    description: Email of Coda to be added
     type: string
-    default: https://staging.coda.io/apis/v1/docs/s2i6oFeghW/tables/grid-QGyaiXZDwu/rows
-  CODA_API_TOKEN:
-    description: |
-      Env var of a token granted read access to the CODA_USER_ROSTER_TABLE_URL document.
+  diff_url:
+    default: ""
+    description: Last known good commit
     type: string
-  CODA_CIRCLECI_USER_NAME_COL:
-    description: |
-      Coda columnId of the column storing the CircleCI username.
-    type: string
-    default: c-6ni4kHGNwE
-  CODA_CIRCLECI_USER_ALIAS_COL:
-    description: |
-      Coda columnId of the column storing the user alias (when using EMAIL_DOMAIN), or fully qualified email.
-    type: string
-    default: c-26If9Zttyp
-  EMAIL_DOMAIN:
-    description: |
-      Optional email domain for users within the workspace.   Must be specified if user aliases are not fully qualified.
-    type: string
-    default: coda.io
-
+  endpoint:
+    default: OPSGENIE_WEBHOOK
+    description: Enter either your Full URL value that you copied in Opsgenie
+      Integration Page
+    type: env_var_name
+  on_failure:
+    default: false
+    description: Failure information of circleci build
+    type: boolean
+  on_success:
+    default: true
+    description: Success information of circleci build
+    type: boolean
 steps:
-  - run:
-      name: Get User Email
-      command: |
-        set -eo pipefail
-        USER_ALIAS=$(curl -s -H "Authorization: Bearer ${CODA_API_TOKEN}" \
-        -G --data-urlencode "query=c-6ni4kHGNwE:\"${CIRCLE_USERNAME}\"" \
-        'https://staging.coda.io/apis/v1/docs/s2i6oFeghW/tables/grid-QGyaiXZDwu/rows' \
-        | jq '.items[0].values."c-26If9Zttyp"' | tr -d '"')
-        if [ $USER_ALIAS != "null" ]; then
-          USER_EMAIL=$([[ "${USER_ALIAS}" == *@* ]] && echo "$USER_ALIAS" || echo "${USER_ALIAS}@coda.io")
-          echo "export USER_EMAIL=${USER_EMAIL}" >> $BASH_ENV
-        fi
+- run:
+    command: |
+      echo '{}' | jq '{
+        "message": "[CircleCI] [#\(env.CIRCLE_PREVIOUS_BUILD_NUM)]: workflow \(env.CIRCLE_BRANCH) stage \(env.CIRCLE_STAGE) job \(env.CIRCLE_JOB)",
+        "alias": "\(env.CIRCLE_PROJECT_REPONAME)/\(env.CIRCLE_BRANCH)#\(env.CIRCLE_JOB)",
+        "description":"See \(env.CIRCLE_BUILD_URL) for more details. ",
+        "outcome": "unknown",
+        "username": env.CIRCLE_USERNAME,
+        "details": {
+          "build_number":env.CIRCLE_PREVIOUS_BUILD_NUM,
+          "build_url": env.CIRCLE_BUILD_URL
+          }
+      }' > /tmp/raw-webhook.json
+      cat /tmp/raw-webhook.json
+    name: Bundle build info into webhook payload
+    when: always
+- when:
+    condition: << parameters.email >>
+    steps:
+    - run:
+        command: |
+          cat /tmp/raw-webhook.json | jq --arg CODA_EMAIL <<parameters.email>> '. +=  {"responders":[{"username":$CODA_EMAIL, "type":"user"}]}' > /tmp/webhook.json
+          cp /tmp/webhook.json /tmp/raw-webhook.json
+          cat /tmp/webhook.json
+        name: Add << parameters.email >> to Webhook
+        when: on_fail
+- when:
+    condition: << parameters.diff_url >>
+    steps:
+    - run:
+        command: |
+          cat /tmp/raw-webhook.json | jq --arg DIFF_URL <<parameters.diff_url>> '.message +=  "Diff URL: '$DIFF_URL'"' > /tmp/webhook.json
+          cp /tmp/webhook.json /tmp/raw-webhook.json
+        name: Add << parameters.diff_url >> to Webhook
+        when: on_fail
+# TO DO : Change message to include [CircleCI]
+- when:
+    condition: <<parameters.on_success>>
+    steps:
+    - run:
+        command: |
+          cat /tmp/raw-webhook.json | jq '.payload.outcome="success"' > /tmp/webhook.json
+          curl -X POST -H"Content-Type:application/json" -H "Authorization: GenieKey ${OPS_GENIE_API_KEY}" -d @/tmp/webhook.json https://api.opsgenie.com/v2/alerts
+        name: Notify $<<parameters.endpoint>> with Success Webhook
+        when: on_success
+- when:
+    condition: <<parameters.on_failure>>
+    steps:
+    - run:
+        command: |
+          cat /tmp/raw-webhook.json | jq '.payload.outcome="failed"'  > /tmp/webhook.json
+          curl -X POST -H"Content-Type:application/json" -H "Authorization: GenieKey ${OPS_GENIE_API_KEY}" -d @/tmp/webhook.json https://api.opsgenie.com/v2/alerts
+        name: Notify $<<parameters.endpoint>> with Failure Webhook
+        when: on_fail

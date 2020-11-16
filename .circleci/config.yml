@@ -2,7 +2,9 @@ version: 2.1
 
 orbs:
   # Replace this with your own!
-  utils: coda/utils@<<pipeline.parameters.dev-orb-version>>
+  # To Do: Change the next line to match previous dev-orb-version? Need to fix 
+  # for automated push 
+  # utils: coda/utils@<<pipeline.parameters.dev-orb-version>>
   orb-tools: circleci/orb-tools@10.0
   bats: circleci/bats@1.0
   shellcheck: circleci/shellcheck@2.0
@@ -29,10 +31,7 @@ jobs:
       - image: cimg/base:stable
     steps:
       - checkout
-      # "greet" is a sample command packaged with this orb config.
-      # This sample integration test will run as long as the greet command exists. Once you remove the greet command you should remove this line.
-      # Push new changes first, before adding new tests to your config.
-      - utils/greet
+      # To Do: Add integration tests here
 
 workflows:
   # Prior to producing a development orb (which requires credentials) basic validation, linting, and even unit testing can be performed.
@@ -60,14 +59,14 @@ workflows:
             - shellcheck/check
       # Publish development version(s) of the orb.
       - orb-tools/publish-dev:
-          orb-name: coda/utils
-          context: orb-publishing # A restricted context containing your private publishing credentials. Will only execute if approved by an authorized user.
+          utils: coda/utils
+          context: <publishing-context> # A restricted context containing your private publishing credentials. Will only execute if approved by an authorized user.
           requires: [hold-for-dev-publish]
       # Trigger an integration workflow to test the
       # dev:${CIRCLE_SHA1:0:7} version of your orb
       - orb-tools/trigger-integration-tests-workflow:
           name: trigger-integration-dev
-          context: orb-publishing
+          context: <publishing-context>
           requires:
             - orb-tools/publish-dev
 
@@ -87,8 +86,8 @@ workflows:
       # be skipped.
       # e.g. [semver:patch] will cause a patch version to be published.
       - orb-tools/dev-promote-prod-from-commit-subject:
-          orb-name: coda/utils
-          context: orb-publishing
+          utils: coda/utils
+          context: <publishing-context>
           add-pr-comment: false
           fail-if-semver-not-indicated: true
           publish-version-tag: false

@@ -43,7 +43,7 @@ parameters:
       Defaults to "gh", but allows other version control systems.
     type: string
     default: gh
-executor: basic
+executor: default
 steps:
   - slack-notify-waiting-for-approval:
       CODA_API_TOKEN: << parameters.CODA_API_TOKEN >>

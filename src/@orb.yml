@@ -11,5 +11,4 @@ display:
   source_url: "https://www.github.com/EXAMPLE_ORG/EXAMPLE_PROJECT"
 
 # If your orb requires other orbs, you can import them like this. Otherwise remove the "orbs" stanza.
-# orbs:
-#  hello: circleci/hello-build@0.0.5
+# To Do: Look into adding slack orb and calling from that? 

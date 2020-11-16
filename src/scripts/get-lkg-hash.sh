@@ -1,7 +1,6 @@
 offset=$page*100
-url_format="https://circleci.com/api/v1/project/${CIRCLE_PROJECT_REPONAME}/${CIRCLE_PR_REPONAME}/tree/${CIRCLEC_BRANCH}?circle-token=${CIRCLE_LOCK_API_TOKEN}&limit=100&offset=${offset}&filter=successful"
+url_format="https://circleci.com/api/v1/project/${CIRCLE_PROJECT_REPONAME}/${CIRCLE_PR_REPONAME}/tree/${CIRCLE_BRANCH}?circle-token=${CIRCLE_LOCK_API_TOKEN}&limit=100&offset=${offset}&filter=successful"
 url_format='https://circleci.com/api/v1/project/{}/{}/tree/{}?circle-token={}&limit={}&offset={}' + \
-
 response = requests.get(url)
 response.raise_for_status()
 build = response.json()

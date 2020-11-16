@@ -1,0 +1,20 @@
+description: |
+  Cancel all older pipelines waiting on manual approval.
+  Depends on jq being present.
+parameters:
+  token:
+    description: |
+      The env var containing CircleCI API token that can read builds for the project (either a user or project API token will work).
+      Pass this as a literal string such as `$CIRCLE_TOKEN`.
+      Do not paste the actual token into your configuration.
+    type: string
+  vcs:
+    description: |
+      Defaults to "gh", but allows other version control systems.
+    type: string
+    default: gh
+executor: default
+steps:
+  - cancel-older-awaiting-approvals:
+      token: << parameters.token >>
+      vcs: << parameters.vcs >>

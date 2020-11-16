@@ -37,7 +37,8 @@ steps:
       CODA_CIRCLECI_USER_NAME_COL: << parameters.CODA_CIRCLECI_USER_NAME_COL >>
       CODA_USER_ROSTER_TABLE_URL: << parameters.CODA_USER_ROSTER_TABLE_URL >>
       EMAIL_DOMAIN: << parameters.EMAIL_DOMAIN >>
+  - lkg
   - notify:
       email: $USER_EMAIL
       on_failure: true
-      diff_url: $DIFF_URL
+      diff_url: $LATEST_GIT_HASH
