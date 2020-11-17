@@ -4,7 +4,7 @@ orbs:
   # Replace this with your own!
   # To Do: Change the next line to match previous dev-orb-version? Need to fix 
   # for automated push 
-  # utils: coda/utils@<<pipeline.parameters.dev-orb-version>>
+  utils: coda/utils@<<pipeline.parameters.dev-orb-version>>
   orb-tools: circleci/orb-tools@10.0
   bats: circleci/bats@1.0
   shellcheck: circleci/shellcheck@2.0
