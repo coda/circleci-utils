@@ -35,7 +35,9 @@ do
     if [ -z $latest_git_hash ]; then
         page=$((page+1))
     fi
-    echo $latest_git_hash
-    echo "export LATEST_GIT_HASH=$latest_git_hash" >> $BASH_ENV
+    DIFF_URL="https://github.com/kr-project/${CIRCLE_PROJECT_REPONAME}/compare/${latest_git_hash}...${CIRCLE_SHA1}"
+    # echo "export LATEST_GIT_HASH=$latest_git_hash" >> $BASH_ENV
+    echo "export LATEST_GIT_HASH=$DIFF_URL" >> $BASH_ENV
+    source $BASH_ENV
 done
 

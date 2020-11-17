@@ -9,9 +9,10 @@ parameters:
     type: string
     default: https://staging.coda.io/apis/v1/docs/s2i6oFeghW/tables/grid-QGyaiXZDwu/rows
   CODA_API_TOKEN:
+    default: CODA_API_TOKEN
     description: |
       Env var of a token granted read access to the CODA_USER_ROSTER_TABLE_URL document.
-    type: string
+    type: env_var_name
   CODA_CIRCLECI_USER_NAME_COL:
     description: |
       Coda columnId of the column storing the CircleCI username.

@@ -1,5 +1,0 @@
-description: Get lkg script
-steps:
-  - run:
-      name: Get diff url
-      command: <<include(scripts/getlkghash.sh)>>

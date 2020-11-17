@@ -56,9 +56,10 @@ commands:
             This command grabs a codan email from CircleCI Username and sets it as USER_EMAIL
         parameters:
             CODA_API_TOKEN:
+                default: CODA_API_TOKEN
                 description: |
                     Env var of a token granted read access to the CODA_USER_ROSTER_TABLE_URL document.
-                type: string
+                type: env_var_name
             CODA_CIRCLECI_USER_ALIAS_COL:
                 default: c-26If9Zttyp
                 description: |
@@ -99,11 +100,37 @@ commands:
         description: Get lkg script
         steps:
             - run:
-                command: "#!/bin/bash\nCIRCLE_FETCH_PAGE_SIZE=100\nCIRCLE_FETCH_MAX_PAGES=100\nresponse=\"\"\nfunction get_recent_builds() {\n    offset=$(($1*$CIRCLE_FETCH_PAGE_SIZE))\n    url=\"https://circleci.com/api/v1/project/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/tree/${CIRCLE_BRANCH}?circle-token=${CIRCLE_LOCK_API_TOKEN}&limit=100&offset=${offset}&filter=successful\"\n    response=$(curl $url | jq '.')\n}\n\n\nlatest_build_num=0\nlatest_git_hash=\"\"\njob_name=$CIRCLE_JOB\npage=0\nwhile [[ $latest_git_hash == \"\" ]] && [[ $page < $CIRCLE_FETCH_MAX_PAGES ]]\ndo\n    IFS=$'\\n'\n    get_recent_builds $page\n    for build in $(echo $response | jq -c '.[]')\n    do\n        if [[ $(echo $build | jq -r '.outcome') != \"success\" ]]; then\n            continue\n        fi\n        # To Do: Change to jq instead of grep?\n        if [[ $(echo $build | grep 'workflows') == \"\" ]]; then \n            continue \n        fi \n        if (( $(echo $build | jq  -r '.build_num') > $latest_build_num ))\\\n        && [[ $(echo $build | jq -r '.workflows.job_name') == $job_name ]]; then\n            latest_build_num=$(echo $build | jq -r '.build_num') \n            latest_git_hash=$(echo $build | jq -r '.vcs_revision')\n        fi\n    done\n    if [ -z $latest_git_hash ]; then\n        page=$((page+1))\n    fi\n    echo \"export LATEST_GIT_HASH=$latest_git_hash\" >> $BASH_ENV\ndone\n\n"
+                command: "#!/bin/bash\nCIRCLE_FETCH_PAGE_SIZE=100\nCIRCLE_FETCH_MAX_PAGES=100\nresponse=\"\"\nfunction get_recent_builds() {\n    offset=$(($1*$CIRCLE_FETCH_PAGE_SIZE))\n    url=\"https://circleci.com/api/v1/project/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/tree/${CIRCLE_BRANCH}?circle-token=${CIRCLE_LOCK_API_TOKEN}&limit=100&offset=${offset}&filter=successful\"\n    response=$(curl $url | jq '.')\n}\n\n\nlatest_build_num=0\nlatest_git_hash=\"\"\njob_name=$CIRCLE_JOB\npage=0\nwhile [[ $latest_git_hash == \"\" ]] && [[ $page < $CIRCLE_FETCH_MAX_PAGES ]]\ndo\n    IFS=$'\\n'\n    get_recent_builds $page\n    for build in $(echo $response | jq -c '.[]')\n    do\n        if [[ $(echo $build | jq -r '.outcome') != \"success\" ]]; then\n            continue\n        fi\n        # To Do: Change to jq instead of grep?\n        if [[ $(echo $build | grep 'workflows') == \"\" ]]; then \n            continue \n        fi \n        if (( $(echo $build | jq  -r '.build_num') > $latest_build_num ))\\\n        && [[ $(echo $build | jq -r '.workflows.job_name') == $job_name ]]; then\n            latest_build_num=$(echo $build | jq -r '.build_num') \n            latest_git_hash=$(echo $build | jq -r '.vcs_revision')\n        fi\n    done\n    if [ -z $latest_git_hash ]; then\n        page=$((page+1))\n    fi\n    DIFF_URL=\"https://github.com/kr-project/${CIRCLE_PROJECT_REPONAME}/compare/${latest_git_hash}...${CIRCLE_SHA1}\"\n    # echo \"export LATEST_GIT_HASH=$latest_git_hash\" >> $BASH_ENV\n    echo \"export LATEST_GIT_HASH=$DIFF_URL\" >> $BASH_ENV\n    source $BASH_ENV\ndone\n\n"
                 name: Get diff url
     notify:
         description: Send build results to Opsgenie API, with detailed information
         parameters:
+            CODA_API_TOKEN:
+                default: CODA_API_TOKEN
+                description: |
+                    Env var of a token granted read access to the CODA_USER_ROSTER_TABLE_URL document.
+                type: env_var_name
+            CODA_CIRCLECI_USER_ALIAS_COL:
+                default: c-26If9Zttyp
+                description: |
+                    Coda columnId of the column storing the user alias (when using EMAIL_DOMAIN), or fully qualified email.
+                type: string
+            CODA_CIRCLECI_USER_NAME_COL:
+                default: c-6ni4kHGNwE
+                description: |
+                    Coda columnId of the column storing the CircleCI username.
+                type: string
+            CODA_USER_ROSTER_TABLE_URL:
+                default: https://staging.coda.io/apis/v1/docs/s2i6oFeghW/tables/grid-QGyaiXZDwu/rows
+                description: |
+                    Fully qualified API URL to a table containing CIRCLECI_USERNAMEs to email aliases.    Must be of the form
+                    https://coda.io/apis/v1/docs/<DOCID>/tables/<TABLEID>/rows.
+                type: string
+            EMAIL_DOMAIN:
+                default: coda.io
+                description: |
+                    Optional email domain for users within the workspace.   Must be specified if user aliases are not fully qualified.
+                type: string
             diff_url:
                 default: ""
                 description: Last known good commit
@@ -127,6 +154,31 @@ commands:
         steps:
             - run:
                 command: |
+                    set -eo pipefail
+                    USER_ALIAS=$(curl -s -H "Authorization: Bearer ${CODA_API_TOKEN}" \
+                    -G --data-urlencode "query=c-6ni4kHGNwE:\"${CIRCLE_USERNAME}\"" \
+                    'https://staging.coda.io/apis/v1/docs/s2i6oFeghW/tables/grid-QGyaiXZDwu/rows' \
+                    | jq '.items[0].values."c-26If9Zttyp"' | tr -d '"')
+                    if [ $USER_ALIAS != "null" ]; then
+                      USER_EMAIL=$([[ "${USER_ALIAS}" == *@* ]] && echo "$USER_ALIAS" || echo "${USER_ALIAS}@coda.io")
+                      echo "export USER_EMAIL=${USER_EMAIL}" >> $BASH_ENV
+                    else
+                      echo "export USER_EMAIL=''" >> $BASH_ENV
+                    fi
+                    echo  $USER_EMAIL
+                    source $BASH_ENV
+                name: Get User Email
+                when: always
+            - run:
+                command: "#!/bin/bash\nCIRCLE_FETCH_PAGE_SIZE=100\nCIRCLE_FETCH_MAX_PAGES=100\nresponse=\"\"\nfunction get_recent_builds() {\n    offset=$(($1*$CIRCLE_FETCH_PAGE_SIZE))\n    url=\"https://circleci.com/api/v1/project/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/tree/${CIRCLE_BRANCH}?circle-token=${CIRCLE_LOCK_API_TOKEN}&limit=100&offset=${offset}&filter=successful\"\n    response=$(curl $url | jq '.')\n}\n\n\nlatest_build_num=0\nlatest_git_hash=\"\"\njob_name=$CIRCLE_JOB\npage=0\nwhile [[ $latest_git_hash == \"\" ]] && [[ $page < $CIRCLE_FETCH_MAX_PAGES ]]\ndo\n    IFS=$'\\n'\n    get_recent_builds $page\n    for build in $(echo $response | jq -c '.[]')\n    do\n        if [[ $(echo $build | jq -r '.outcome') != \"success\" ]]; then\n            continue\n        fi\n        # To Do: Change to jq instead of grep?\n        if [[ $(echo $build | grep 'workflows') == \"\" ]]; then \n            continue \n        fi \n        if (( $(echo $build | jq  -r '.build_num') > $latest_build_num ))\\\n        && [[ $(echo $build | jq -r '.workflows.job_name') == $job_name ]]; then\n            latest_build_num=$(echo $build | jq -r '.build_num') \n            latest_git_hash=$(echo $build | jq -r '.vcs_revision')\n        fi\n    done\n    if [ -z $latest_git_hash ]; then\n        page=$((page+1))\n    fi\n    DIFF_URL=\"https://github.com/kr-project/${CIRCLE_PROJECT_REPONAME}/compare/${latest_git_hash}...${CIRCLE_SHA1}\"\n    # echo \"export LATEST_GIT_HASH=$latest_git_hash\" >> $BASH_ENV\n    echo \"export LATEST_GIT_HASH=$DIFF_URL\" >> $BASH_ENV\n    source $BASH_ENV\ndone\n\n"
+                name: Get diff url
+                when: always
+            - run:
+                command: echo $LATEST_GIT_HASH
+                name: Test diff url
+                when: always
+            - run:
+                command: |
                     echo '{}' | jq '{
                       "message": "[CircleCI] [#\(env.CIRCLE_PREVIOUS_BUILD_NUM)]: workflow \(env.CIRCLE_BRANCH) stage \(env.CIRCLE_STAGE) job \(env.CIRCLE_JOB)",
                       "alias": "\(env.CIRCLE_PROJECT_REPONAME)/\(env.CIRCLE_BRANCH)#\(env.CIRCLE_JOB)",
@@ -142,23 +194,24 @@ commands:
                 name: Bundle build info into webhook payload
                 when: always
             - when:
-                condition: << parameters.email >>
+                condition: $USER_EMAIL
                 steps:
                     - run:
                         command: |
-                            cat /tmp/raw-webhook.json | jq --arg CODA_EMAIL <<parameters.email>> '. +=  {"responders":[{"username":$CODA_EMAIL, "type":"user"}]}' > /tmp/webhook.json
-                            cp /tmp/webhook.json /tmp/raw-webhook.json
-                            cat /tmp/webhook.json
-                        name: Add << parameters.email >> to Webhook
+                            cat /tmp/raw-webhook.json | jq --arg USER_EMAIL $USER_EMAIL '.responders +=  [{"username":$USER_EMAIL, "type":"user"}]' > /tmp/webhook2.json
+                            cp /tmp/webhook2.json /tmp/raw-webhook.json
+                            cat /tmp/raw-webhook.json
+                        name: Add user email to Webhook
                         when: on_fail
             - when:
-                condition: << parameters.diff_url >>
+                condition: $LATEST_GIT_HASH
                 steps:
                     - run:
                         command: |
-                            cat /tmp/raw-webhook.json | jq --arg DIFF_URL <<parameters.diff_url>> '.message +=  "Diff URL: '$DIFF_URL'"' > /tmp/webhook.json
-                            cp /tmp/webhook.json /tmp/raw-webhook.json
-                        name: Add << parameters.diff_url >> to Webhook
+                            cat /tmp/raw-webhook.json | jq --arg LATEST_GIT_HASH $LATEST_GIT_HASH '.message +=  "Compare URL: '$LATEST_GIT_HASH'"' > /tmp/raw-webhook2.json
+                            cp /tmp/raw-webhook2.json /tmp/raw-webhook.json
+                            cat /tmp/raw-webhook.json
+                        name: Add latest git hash to Webhook
                         when: on_fail
             - when:
                 condition: <<parameters.on_success>>
@@ -174,6 +227,7 @@ commands:
                 steps:
                     - run:
                         command: |
+                            cat /tmp/raw-webhook.json
                             cat /tmp/raw-webhook.json | jq '.payload.outcome="failed"'  > /tmp/webhook.json
                             curl -X POST -H"Content-Type:application/json" -H "Authorization: GenieKey ${OPS_GENIE_API_KEY}" -d @/tmp/webhook.json https://api.opsgenie.com/v2/alerts
                         name: Notify $<<parameters.endpoint>> with Failure Webhook
