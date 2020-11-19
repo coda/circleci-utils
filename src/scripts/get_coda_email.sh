@@ -7,13 +7,14 @@ function run_main() {
     | jq '.items[0].values."c-26If9Zttyp"' | tr -d '"')
     if [ "$USER_ALIAS" != "null" ]; then
         USER_EMAIL=$([[ "${USER_ALIAS}" == *@* ]] && echo "$USER_ALIAS" || echo "${USER_ALIAS}@coda.io")
-        echo "export USER_EMAIL=${USER_EMAIL}" >> "$BASH_ENV"
     else
-        echo "export USER_EMAIL=''" >> "$BASH_ENV"
+        USER_EMAIL=""
     fi
     echo "$USER_EMAIL"
 }
+
 ORB_TEST_ENV="bats-core"
 if [ "${0#*$ORB_TEST_ENV}" == "$0" ]; then
     run_main
+    echo "export USER_EMAIL=${USER_EMAIL}" >> "$BASH_ENV"
 fi

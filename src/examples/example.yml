@@ -7,12 +7,12 @@ usage:
   version: 2.1
   orbs:
     utils: coda/utils@<version>
-  jobs:
-    my-job:
-      executor: default
-        steps:
-          - utils/notify:
-              on_failure: true  
+  # jobs:
+  #   my-job:
+  #     executor: default
+  #       steps:
+  #         - utils/notify:
+  #             on_failure: true  
   workflows:
     use-my-orb:
       jobs:

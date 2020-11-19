@@ -45,7 +45,6 @@ function run_main() {
     done
     #DIFF_URl is printed for bats test, exported for ci
     echo "$DIFF_URL"
-    echo "export DIFF_URL=$DIFF_URL" >> "$BASH_ENV"
 
 }
 
@@ -54,4 +53,5 @@ function run_main() {
 ORB_TEST_ENV="bats-core"
 if [ "${0#*$ORB_TEST_ENV}" == "$0" ]; then
     run_main
+    echo "export DIFF_URL=$DIFF_URL" >> "$BASH_ENV"
 fi
