@@ -7,7 +7,8 @@ setup() {
 @test '2: Check Coda Email Exists' {
     export CIRCLE_USERNAME="gita"
     result=$(run_main)
-    [ "$result" == *"gita@coda.io"* ]
+    echo $result
+    [ "$result" == "gita@coda.io" ]
 }
 @test '3: Check Coda Email DNE' {
     export CIRCLE_USERNAME="nonexistant_user"
