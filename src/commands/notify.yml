@@ -30,7 +30,7 @@ steps:
 - run:
     name: Get User Email
     when: always
-    command: <<include(scripts/get_coda_email.sh)>>
+    command: <<include(scripts/fetch_user_handles.sh)>>
 - run:
     name: Get diff url
     when: on_fail

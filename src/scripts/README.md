@@ -9,6 +9,7 @@ As a part of keeping things seperate, it is encouraged to use environment variab
 Utilizing the `circleci orb pack` CLI command, it is possible to import files (such as _shell scripts_), using the `<<include(scripts/script_name.sh)>>` syntax in place of any config key's value.
 
 ```yaml
+
 # commands/greet.yml
 description: >
   This command echos "Hello World" using file inclusion.
@@ -22,7 +23,7 @@ steps:
       environment:
         PARAM_TO: <<parameters.to>
       name: Hello <<parameters.to>
-      command: <<include(scripts/greet.sh)>>
+      command: <<include(scripts/get_lkg_hash.sh)>>
 
 ```
 
@@ -38,3 +39,6 @@ if [[ "$_" == "$0" ]]; then
     Greet
 fi
 ```
+
+TO DO :
+CIRCLE_TOKEN is circleci environment variable in UI to process scripts/get_lkg_hash.sh

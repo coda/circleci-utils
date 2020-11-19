@@ -44,48 +44,46 @@ parameters:
     type: string
     default: gh
 steps:
-  - run:
-      name: Fetch Slack Handle For Github Handle
-      command: |
-        set -eo pipefail
-
-        USER_ALIAS=$(curl -s -H "Authorization: Bearer << parameters.CODA_API_TOKEN >>" \
-          -G --data-urlencode "query=<< parameters.CODA_CIRCLECI_USER_NAME_COL >>:\"${CIRCLE_USERNAME}\"" \
-          '<< parameters.CODA_USER_ROSTER_TABLE_URL >>' \
-          | jq '.items[0].values."<< parameters.CODA_CIRCLECI_USER_ALIAS_COL >>"' | tr -d '"')
-        USER_EMAIL=$([[ "${USER_ALIAS}" == *@* ]] && echo "$USER_ALIAS" || echo "${USER_ALIAS}@<< parameters.EMAIL_DOMAIN >>")
-        SLACK_USER_ID=$(curl -s -H "Authorization: Bearer << parameters.SLACK_BOT_TOKEN >>" \
-          https://slack.com/api/users.lookupByEmail?email=${USER_EMAIL} \
-          | jq '.user.id' | tr -d '"')
-
-        curl -X POST -H "Authorization: Bearer << parameters.SLACK_BOT_TOKEN >>" \
-          -H "Content-Type: application/json" -d \
-          "{ \
-            \"channel\": \"${SLACK_USER_ID}\", \
-            \"attachments\": [ \
-              { \
-                \"text\": \"Pending Approval for ${CIRCLE_PROJECT_REPONAME} push (${CIRCLE_USERNAME})\", \
-                \"fields\": [ \
-                  { \
-                    \"title\": \"Project\", \
-                    \"value\": \"${CIRCLE_PROJECT_REPONAME}\", \
-                    \"short\": true \
-                  }, \
-                  { \
-                    \"title\": \"Job Number\", \
-                    \"value\": \"${CIRCLE_BUILD_NUM}\", \
-                    \"short\": true \
-                  } \
-                ], \
-                \"actions\": [ \
-                  { \
-                    \"type\": \"button\", \
-                    \"text\": \"Visit Workflow\", \
-                    \"url\": \"https://circleci.com/workflow-run/${CIRCLE_WORKFLOW_ID}\" \
-                  } \
-                ], \
-                \"color\": \"#f46a54\" \
-              } \
-            ] \
-          }" \
-          'https://slack.com/api/chat.postMessage'
+- run:
+    environment:
+      SLACK_BOT_TOKEN: << parameters.SLACK_BOT_TOKEN >>
+    name: Fetch User Information from Look Up Table
+    command: <<include(scripts/fetch_user_handles.sh)>>
+- when:
+    condition: $SLACK_USER_ID
+    steps:
+    - run:
+        name: Send Slack Message 
+        command: |
+          set -eo pipefail
+          curl -X POST -H "Authorization: Bearer << parameters.SLACK_BOT_TOKEN >>" \
+            -H "Content-Type: application/json" -d \
+            "{ \
+              \"channel\": \"${SLACK_USER_ID}\", \
+              \"attachments\": [ \
+                { \
+                  \"text\": \"Pending Approval for ${CIRCLE_PROJECT_REPONAME} push (${CIRCLE_USERNAME})\", \
+                  \"fields\": [ \
+                    { \
+                      \"title\": \"Project\", \
+                      \"value\": \"${CIRCLE_PROJECT_REPONAME}\", \
+                      \"short\": true \
+                    }, \
+                    { \
+                      \"title\": \"Job Number\", \
+                      \"value\": \"${CIRCLE_BUILD_NUM}\", \
+                      \"short\": true \
+                    } \
+                  ], \
+                  \"actions\": [ \
+                    { \
+                      \"type\": \"button\", \
+                      \"text\": \"Visit Workflow\", \
+                      \"url\": \"https://circleci.com/workflow-run/${CIRCLE_WORKFLOW_ID}\" \
+                    } \
+                  ], \
+                  \"color\": \"#f46a54\" \
+                } \
+              ] \
+            }" \
+            'https://slack.com/api/chat.postMessage'
