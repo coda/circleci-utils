@@ -11,10 +11,11 @@ function run_main() {
         USER_EMAIL=""
     fi
     echo "$USER_EMAIL"
+    echo "export USER_EMAIL=${USER_EMAIL}" >> $BASH_ENV
+
 }
 
 ORB_TEST_ENV="bats-core"
 if [ "${0#*$ORB_TEST_ENV}" == "$0" ]; then
     run_main
-    echo "export USER_EMAIL=${USER_EMAIL}" >> "$BASH_ENV"
 fi

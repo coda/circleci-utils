@@ -39,12 +39,16 @@ function run_main() {
         if [ -z "$latest_git_hash" ]; then
             # if latest_git_hash is not empty then increase page and set
             page=$((page+1))
-            DIFF_URL="https://github.com/kr-project/${CIRCLE_PROJECT_REPONAME}/compare/\
-                    ${latest_git_hash}...${CIRCLE_SHA1}"
         fi
     done
+    if [ -z "$latest_git_hash" ]; then
+        # if latest_git_hash is not empty then increase page and set
+        echo "$latest_git_hash"
+        DIFF_URL="https://github.com/kr-project/${CIRCLE_PROJECT_REPONAME}/compare/${latest_git_hash}...${CIRCLE_SHA1}"
+    fi
     #DIFF_URl is printed for bats test, exported for ci
     echo "$DIFF_URL"
+    echo "export DIFF_URL=$DIFF_URL" >> $BASH_ENV
 
 }
 
@@ -53,5 +57,4 @@ function run_main() {
 ORB_TEST_ENV="bats-core"
 if [ "${0#*$ORB_TEST_ENV}" == "$0" ]; then
     run_main
-    echo "export DIFF_URL=$DIFF_URL" >> "$BASH_ENV"
 fi
