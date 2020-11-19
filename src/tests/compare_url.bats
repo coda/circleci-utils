@@ -1,7 +1,7 @@
 # Runs prior to every test
 setup() {
     # Load our script file.
-    source ./src/scripts/
+    source ./src/scripts/compare_url.bats
 }
 
 @test '1: Get a Diff URL' {
@@ -9,6 +9,6 @@ setup() {
     export CIRCLE_BRANCH="master"
     export CIRCLE_PROJECT_REPONAME="experimental"
     export CIRCLE_JOB="commit_validation"
-    result=$(LATEST_GIT_HASH)
+    result=$(run_main)
     [ "$result" != "" ]
 }

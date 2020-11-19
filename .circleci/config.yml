@@ -1,9 +1,6 @@
 version: 2.1
 
 orbs:
-  # Replace this with your own!
-  # To Do: Change the next line to match previous dev-orb-version? Need to fix 
-  # for automated push 
   utils: coda/utils@<<pipeline.parameters.dev-orb-version>>
   orb-tools: circleci/orb-tools@10.0
   bats: circleci/bats@1.0
@@ -39,7 +36,6 @@ workflows:
   test-pack:
     unless: << pipeline.parameters.run-integration-tests >>
     jobs:
-      - orb-tools/lint # Lint Yaml files
       - orb-tools/pack # Pack orb source
       - shellcheck/check:
           dir: ./src/scripts
@@ -53,7 +49,6 @@ workflows:
       - hold-for-dev-publish:
           type: approval
           requires:
-            - orb-tools/lint
             - orb-tools/pack
             - bats/run
             - shellcheck/check

@@ -72,7 +72,7 @@ steps:
 - run:
     name: Test diff url
     when: always
-    command: echo $LATEST_GIT_HASH
+    command: echo $DIFF_URL
 - run:
     command: |
       echo '{}' | jq '{
@@ -100,11 +100,11 @@ steps:
         name: Add user email to Webhook
         when: on_fail
 - when:
-    condition: $LATEST_GIT_HASH
+    condition: $DIFF_URL
     steps:
     - run:
         command: |
-          cat /tmp/raw-webhook.json | jq --arg LATEST_GIT_HASH $LATEST_GIT_HASH '.message +=  " Compare URL: '$LATEST_GIT_HASH'"' > /tmp/raw-webhook2.json
+          cat /tmp/raw-webhook.json | jq --arg DIFF_URL $DIFF_URL '.message +=  " Compare URL: '$DIFF_URL'"' > /tmp/raw-webhook2.json
           cp /tmp/raw-webhook2.json /tmp/raw-webhook.json
           cat /tmp/raw-webhook.json
         name: Add latest git hash to Webhook
