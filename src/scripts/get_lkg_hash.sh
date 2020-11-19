@@ -46,7 +46,7 @@ function run_main() {
             page=$((page+1))
         fi
     done
-    if [ ! -z "$latest_git_hash" ]; then
+    if [ -n "$latest_git_hash" ]; then
         # if latest_git_hash was found set DIFF_URL
         #DIFF_URl is printed for bats test, exported for ci
         DIFF_URL="https://github.com/kr-project/${CIRCLE_PROJECT_REPONAME}/compare/${latest_git_hash}...${CIRCLE_SHA1}"

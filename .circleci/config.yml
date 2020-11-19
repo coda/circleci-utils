@@ -21,6 +21,16 @@ parameters:
     type: string
     default: "dev:alpha"
 
+commands:
+  fail-job:
+    steps:
+      - run:
+          name: Test
+          command: echo "Testing orb"
+      - run:
+          name: Fail Step
+          command: exit 1
+
 jobs:
   # Define one or more jobs which will utilize your orb's commands and parameters to validate your changes.
   integration-test-1:
@@ -28,7 +38,9 @@ jobs:
       - image: cimg/base:stable
     steps:
       - checkout
-      # To Do: Add integration tests here
+      - fail-job
+      - utils/notify:
+          on_failure
 
 workflows:
   # Prior to producing a development orb (which requires credentials) basic validation, linting, and even unit testing can be performed.
