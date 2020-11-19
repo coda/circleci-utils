@@ -17,9 +17,6 @@ Additional READMEs are available in each directory.
 [CircleCI Orb Registry Page](https://circleci.com/orbs/registry/orb/coda/circleci-utils) - The official registry page of this orb for all versions, executors, commands, and jobs described.
 [CircleCI Orb Docs](https://circleci.com/docs/2.0/orb-intro/#section=configuration) - Docs for using and creating CircleCI Orbs.
 
-### How to Contribute
-
-We welcome [issues](https://github.com/kr-project/circleci-utils/issues) to and [pull requests](https://github.com/kr-project/circleci-utils/pulls) against this repository!
 
 ### How to Publish
 * Create and push a branch with your new features.
@@ -39,7 +36,10 @@ Example: `[semver:major]`
 * On merge, after manual approval, the orb will automatically be published to the Orb Registry.
 
 
-For further questions/comments about this or other orbs, visit the Orb Category of [CircleCI Discuss](https://discuss.circleci.com/c/orbs).
+### How to Publish Dev Version
 
-Publish dev version by
-circleci orb publish orb.yml coda/utils@dev:alpha
+```
+cd src
+circleci orb pack .  > orb.yml
+circleci orb publish orb.yml coda/utils@dev:<your_branch_name>
+```
