@@ -1,7 +1,7 @@
 # Runs prior to every test
 setup() {
     # Load our script file.
-    source ./src/scripts/compare_url.bats
+    source ./src/scripts/getlkghash.sh
 }
 
 @test '1: Get a Diff URL' {
