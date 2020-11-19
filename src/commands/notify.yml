@@ -21,58 +21,20 @@ parameters:
     default: true
     description: Success information of circleci build
     type: boolean
-  CODA_USER_ROSTER_TABLE_URL:
-    description: |
-      Fully qualified API URL to a table containing CIRCLECI_USERNAMEs to email aliases.    Must be of the form
-      https://coda.io/apis/v1/docs/<DOCID>/tables/<TABLEID>/rows.
-    type: string
-    default: https://staging.coda.io/apis/v1/docs/s2i6oFeghW/tables/grid-QGyaiXZDwu/rows
   CODA_API_TOKEN:
     default: CODA_API_TOKEN
     description: |
       Env var of a token granted read access to the CODA_USER_ROSTER_TABLE_URL document.
     type: env_var_name
-  CODA_CIRCLECI_USER_NAME_COL:
-    description: |
-      Coda columnId of the column storing the CircleCI username.
-    type: string
-    default: c-6ni4kHGNwE
-  CODA_CIRCLECI_USER_ALIAS_COL:
-    description: |
-      Coda columnId of the column storing the user alias (when using EMAIL_DOMAIN), or fully qualified email.
-    type: string
-    default: c-26If9Zttyp
-  EMAIL_DOMAIN:
-    description: |
-      Optional email domain for users within the workspace.   Must be specified if user aliases are not fully qualified.
-    type: string
-    default: coda.io
 steps:
 - run:
     name: Get User Email
     when: always
-    command: |
-      set -eo pipefail
-      USER_ALIAS=$(curl -s -H "Authorization: Bearer ${CODA_API_TOKEN}" \
-      -G --data-urlencode "query=<< parameters.CODA_CIRCLECI_USER_NAME_COL >>:\"${CIRCLE_USERNAME}\"" \
-      'https://staging.coda.io/apis/v1/docs/s2i6oFeghW/tables/grid-QGyaiXZDwu/rows' \
-      | jq '.items[0].values."<< parameters.CODA_CIRCLECI_USER_ALIAS_COL >>"' | tr -d '"')
-      if [ $USER_ALIAS != "null" ]; then
-        USER_EMAIL=$([[ "${USER_ALIAS}" == *@* ]] && echo "$USER_ALIAS" || echo "${USER_ALIAS}@coda.io")
-        echo "export USER_EMAIL=${USER_EMAIL}" >> $BASH_ENV
-      else
-        echo "export USER_EMAIL=''" >> $BASH_ENV
-      fi
-      echo  $USER_EMAIL
-      source $BASH_ENV
+    command: <<include(scripts/get_coda_email.sh)>>
 - run:
     name: Get diff url
-    when: always
-    command: <<include(scripts/getlkghash.sh)>>
-- run:
-    name: Test diff url
-    when: always
-    command: echo $DIFF_URL
+    when: on_fail
+    command: <<include(scripts/get_lkg_hash.sh)>>
 - run:
     command: |
       echo '{}' | jq '{
@@ -86,7 +48,6 @@ steps:
           "build_url": env.CIRCLE_BUILD_URL
           }
       }' > /tmp/raw-webhook.json
-      cat /tmp/raw-webhook.json
     name: Bundle build info into webhook payload
     when: always
 - when:
@@ -96,7 +57,6 @@ steps:
         command: |
           cat /tmp/raw-webhook.json | jq --arg USER_EMAIL $USER_EMAIL '.responders +=  [{"username":$USER_EMAIL, "type":"user"}]' > /tmp/webhook2.json
           cp /tmp/webhook2.json /tmp/raw-webhook.json
-          cat /tmp/raw-webhook.json
         name: Add user email to Webhook
         when: on_fail
 - when:
@@ -106,7 +66,6 @@ steps:
         command: |
           cat /tmp/raw-webhook.json | jq --arg DIFF_URL $DIFF_URL '.message +=  " Compare URL: '$DIFF_URL'"' > /tmp/raw-webhook2.json
           cp /tmp/raw-webhook2.json /tmp/raw-webhook.json
-          cat /tmp/raw-webhook.json
         name: Add latest git hash to Webhook
         when: on_fail
 - when:
@@ -123,7 +82,6 @@ steps:
     steps:
     - run:
         command: |
-          cat /tmp/raw-webhook.json
           cat /tmp/raw-webhook.json | jq '.payload.outcome="failed"'  > /tmp/webhook.json
           curl -X POST -H"Content-Type:application/json" -H "Authorization: GenieKey ${OPS_GENIE_API_KEY}" -d @/tmp/webhook.json https://api.opsgenie.com/v2/alerts
         name: Notify $<<parameters.endpoint>> with Failure Webhook
