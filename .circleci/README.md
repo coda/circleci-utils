@@ -12,6 +12,8 @@ Both orb-tools and a development version of your orb will be imported into the c
 
 In the _jobs_ key, you will define _integration tests_. These jobs will utilize the functionality of your orb at run-time and attempt to validate their usage with live examples. Integration tests can be an excellent way of determining issues with parameters and run-time execution.
 
+To test just integration tests, set the _run-integration-tests_ parameter to `true`.
+
 ### Workflows
 
 There are two workflows which automate the pack, test, and publishing process.
