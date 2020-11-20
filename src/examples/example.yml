@@ -1,18 +1,15 @@
-description: >
-  Three differeent use cases 
-# Provide a use-case based example for using this orb.
-# Everything in the `usage` section will be displayed in the orb registry.
-
 usage:
   version: 2.1
   orbs:
     utils: coda/utils@<version>
-  # jobs:
-  #   my-job:
-  #     executor: default
-  #       steps:
-  #         - utils/notify:
-  #             on_failure: true  
+  jobs:
+    my-job:
+      docker:
+        - image: cimg/base:stable
+      steps:
+        - checkout
+        - utils/notify:
+            on_failure: true
   workflows:
     use-my-orb:
       jobs:
@@ -22,4 +19,3 @@ usage:
         - utils/slack-notify-waiting-for-approval:
             CODA_API_TOKEN: ${GITHUB_TO_SLACK_CODA_API_TOKEN}
             SLACK_BOT_TOKEN: ${PUSH_REMINDER_BOT_TOKEN}
-

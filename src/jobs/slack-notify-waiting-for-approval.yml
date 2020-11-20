@@ -15,7 +15,7 @@ parameters:
       https://coda.io/apis/v1/docs/<DOCID>/tables/<TABLEID>/rows.
     type: string
     default: https://staging.coda.io/apis/v1/docs/s2i6oFeghW/tables/grid-QGyaiXZDwu/rows
-  CODA_API_TOKEN:
+  coda_api_token:
     description: |
       Env var of a token granted read access to the CODA_USER_ROSTER_TABLE_URL document.
     type: string
@@ -35,7 +35,7 @@ parameters:
       Optional email domain for users within the workspace.   Must be specified if user aliases are not fully qualified.
     type: string
     default: coda.io
-  SLACK_BOT_TOKEN:
+  slack_bot_token:
     default: $PUSH_REMINDER_BOT_TOKEN
     type: string
     description: |
@@ -48,10 +48,10 @@ parameters:
 executor: default
 steps:
   - slack-notify-waiting-for-approval:
-      CODA_API_TOKEN: << parameters.CODA_API_TOKEN >>
+      coda_api_token: << parameters.coda_api_token >>
       CODA_CIRCLECI_USER_ALIAS_COL: << parameters.CODA_CIRCLECI_USER_ALIAS_COL >>
       CODA_CIRCLECI_USER_NAME_COL: << parameters.CODA_CIRCLECI_USER_NAME_COL >>
       CODA_USER_ROSTER_TABLE_URL: << parameters.CODA_USER_ROSTER_TABLE_URL >>
       EMAIL_DOMAIN: << parameters.EMAIL_DOMAIN >>
-      SLACK_BOT_TOKEN: << parameters.SLACK_BOT_TOKEN >>
+      slack_bot_token: << parameters.slack_bot_token >>
       vcs: << parameters.vcs >>

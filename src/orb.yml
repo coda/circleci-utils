@@ -8,11 +8,11 @@ commands:
             Cancel all older pipelines waiting on manual approval.
             Depends on jq being present.
         parameters:
-            CIRCLE_TOKEN:
-                default: CIRCLE_TOKEN
+            circle_token:
+                default: ${CIRCLECI_TOKEN}
                 description: |
                     Env var of a token granted read access to the CircleCI api
-                type: env_var_name
+                type: string
             vcs:
                 default: gh
                 description: |
@@ -25,12 +25,9 @@ commands:
                     set -eo pipefail
 
                     BASE_URL="https://circleci.com/api/v2"
-                    TOKEN="circle-token=${CIRCLECI_API_TOKEN}"
+                    TOKEN="circle-token=${CIRCLECI_TOKEN}"
                     vcs="gh"
-                    echo "${BASE_URL}/workflow/${CIRCLE_WORKFLOW_ID}"
-                    echo "$TOKEN"
                     CURRENT_WORKFLOW=$(curl -s -H "Accept: application/json" "${BASE_URL}/workflow/${CIRCLE_WORKFLOW_ID}?${TOKEN}")
-                    echo "$CURRENT_WORKFLOW"
                     CURRENT_WORKFLOW_TIMESTAMP=$(echo "$CURRENT_WORKFLOW" | jq -r ".created_at")
                     echo "Current workflow start time: ${CURRENT_WORKFLOW_TIMESTAMP}"
 
@@ -47,26 +44,43 @@ commands:
                         echo "Workflow data: ${WORKFLOW_ID}, ${WORKFLOW_STATUS}, ${WORKFLOW_CREATION_TIMESTAMP}"
 
                         if [[ $WORKFLOW_CREATION_TIMESTAMP < $CURRENT_WORKFLOW_TIMESTAMP && "$WORKFLOW_STATUS" == "on_hold" ]]; then
-                        echo "Canceling older workflow waiting for manual approval: ${WORKFLOW_ID}"
-                        curl -s -X POST -H "Accept: application/json" "${BASE_URL}/workflow/${WORKFLOW_ID}/cancel?${TOKEN}"
+                            echo "Canceling older workflow waiting for manual approval: ${WORKFLOW_ID}"
+                            curl -s -X POST -H "Accept: application/json" "${BASE_URL}/workflow/${WORKFLOW_ID}/cancel?${TOKEN}" || true
                         fi
                     done
                 environment:
+                    CIRCLECI_TOKEN: <<parameters.circle_token>>
                     vcs: <<parameters.vcs>>
                 name: Cancel older pipelines waiting on manual approval.
     notify:
         description: Send build results to Opsgenie API, with detailed information
         parameters:
-            CIRCLE_TOKEN:
-                default: CIRCLE_TOKEN
+            CODA_CIRCLECI_USER_ALIAS_COL:
+                default: c-26If9Zttyp
+                description: |
+                    Coda columnId of the column storing the user alias (when using EMAIL_DOMAIN), or fully qualified email.
+                type: string
+            CODA_CIRCLECI_USER_NAME_COL:
+                default: c-6ni4kHGNwE
+                description: |
+                    Coda columnId of the column storing the CircleCI username in the CODA_USER_ROSTER_TABLE_URL document.
+                type: string
+            CODA_USER_ROSTER_TABLE_URL:
+                default: https://staging.coda.io/apis/v1/docs/s2i6oFeghW/tables/grid-QGyaiXZDwu/rows
+                description: |
+                    Fully qualified API URL to a table containing CIRCLECI_USERNAMEs to email aliases.    Must be of the form
+                    https://coda.io/apis/v1/docs/<DOCID>/tables/<TABLEID>/rows.
+                type: string
+            circle_token:
+                default: ${CIRCLECI_TOKEN}
                 description: |
                     Env var of a token granted read access to the CircleCI api
-                type: env_var_name
-            CODA_API_TOKEN:
-                default: STAGING_CODA_TOKEN
+                type: string
+            coda_api_token:
+                default: ${STAGING_CODA_TOKEN}
                 description: |
                     Env var of a token granted read access to the CODA_USER_ROSTER_TABLE_URL document.
-                type: env_var_name
+                type: string
             endpoint:
                 default: OPSGENIE_WEBHOOK
                 description: Enter either your Full URL value that you copied in Opsgenie Integration Page
@@ -81,15 +95,18 @@ commands:
                 type: boolean
         steps:
             - run:
-                command: "#!/bin/bash\nset -eo pipefail\nCODA_CIRCLECI_USER_NAME_COL=\"c-6ni4kHGNwE\"\nCODA_CIRCLECI_USER_ALIAS_COL=\"c-26If9Zttyp\"\nUSER_EMAIL=\"\"\nCIRCLE_USERNAME=$CIRCLE_USERNAME\nfunction run_main() {\n    USER_ALIAS=$(curl -s -H \"Authorization: Bearer ${CODA_API_TOKEN}\" \\\n    -G --data-urlencode \"query=${CODA_CIRCLECI_USER_NAME_COL}:\\\"${CIRCLE_USERNAME}\\\"\" \\\n    'https://staging.coda.io/apis/v1/docs/s2i6oFeghW/tables/grid-QGyaiXZDwu/rows' \\\n    | jq --arg CODA_CIRCLECI_USER_ALIAS_COL \"$CODA_CIRCLECI_USER_ALIAS_COL\" '.items[0].values.\"'$CODA_CIRCLECI_USER_ALIAS_COL'\"' | tr -d '\"')\n    if [ \"$USER_ALIAS\" != \"null\" ]; then\n        USER_EMAIL=$([[ \"${USER_ALIAS}\" == *@* ]] && echo \"$USER_ALIAS\" || echo \"${USER_ALIAS}@coda.io\")\n        echo \"$USER_EMAIL\"\n        echo \"export USER_EMAIL=${USER_EMAIL}\" >> \"$BASH_ENV\"\n        \n    fi\n    \n    if [ -n \"$PUSH_REMINDER_BOT_TOKEN\" ]; then \n        echo \"$USER_EMAIL\"\n        SLACK_USER_ID=$(curl -s -H \"Authorization: Bearer $PUSH_REMINDER_BOT_TOKEN\" \\\n            \"https://slack.com/api/users.lookupByEmail?email=${USER_EMAIL}\" \\\n            | jq '.user.id' | tr -d '\"')\n        echo \"$SLACK_USER_ID\"\n        echo \"export SLACK_USER_ID=${SLACK_USER_ID}\" >> \"$BASH_ENV\"\n    fi\n}\n\nORB_TEST_ENV=\"bats-core\"\nif [ \"${0#*$ORB_TEST_ENV}\" == \"$0\" ]; then\n    run_main\nfi"
+                command: "#!/bin/bash\nset -eo pipefail\nUSER_EMAIL=\"\"\nCIRCLE_USERNAME=$CIRCLE_USERNAME\nfunction run_main() {\n    USER_ALIAS=$(curl -s -H \"Authorization: Bearer ${CODA_API_TOKEN}\" \\\n    -G --data-urlencode \"query=${CODA_CIRCLECI_USER_NAME_COL}:\\\"${CIRCLE_USERNAME}\\\"\" \\\n    ${CODA_USER_ROSTER_TABLE_URL} \\\n    | jq --arg CODA_CIRCLECI_USER_ALIAS_COL \"$CODA_CIRCLECI_USER_ALIAS_COL\" '.items[0].values.\"'$CODA_CIRCLECI_USER_ALIAS_COL'\"' | tr -d '\"')\n    if [ \"$USER_ALIAS\" != \"null\" ]; then\n        USER_EMAIL=$([[ \"${USER_ALIAS}\" == *@* ]] && echo \"$USER_ALIAS\" || echo \"${USER_ALIAS}@coda.io\")\n        echo \"$USER_EMAIL\"\n        echo \"export USER_EMAIL=${USER_EMAIL}\" >> \"$BASH_ENV\"\n        \n    fi\n    \n    if [ -n \"$SLACK_BOT_TOKEN\" ]; then \n        echo \"$USER_EMAIL\"\n        SLACK_USER_ID=$(curl -s -H \"Authorization: Bearer $SLACK_BOT_TOKEN\" \\\n            \"https://slack.com/api/users.lookupByEmail?email=${USER_EMAIL}\" \\\n            | jq '.user.id' | tr -d '\"')\n        echo \"$SLACK_USER_ID\"\n        echo \"export SLACK_USER_ID=${SLACK_USER_ID}\" >> \"$BASH_ENV\"\n    fi\n}\n\n# Will not run if sourced for bats.\nORB_TEST_ENV=\"bats-core\"\nif [ \"${0#*$ORB_TEST_ENV}\" == \"$0\" ]; then\n    run_main\nfi"
                 environment:
-                    CODA_API_TOKEN: << parameters.CODA_API_TOKEN >>
+                    CODA_API_TOKEN: << parameters.coda_api_token >>
+                    CODA_CIRCLECI_USER_ALIAS_COL: <<parameters.CODA_CIRCLECI_USER_ALIAS_COL>>
+                    CODA_CIRCLECI_USER_NAME_COL: <<parameters.CODA_CIRCLECI_USER_NAME_COL>>
+                    CODA_USER_ROSTER_TABLE_URL: <<parameters.CODA_USER_ROSTER_TABLE_URL>>
                 name: Fetch User Information
                 when: always
             - run:
-                command: "#!/bin/bash\nCIRCLE_FETCH_PAGE_SIZE=100\nCIRCLE_FETCH_MAX_PAGES=100\nresponse=\"\"\nfunction get_recent_builds() {\n    offset=$(($1*CIRCLE_FETCH_PAGE_SIZE))\n    url=\"https://circleci.com/api/v1/project/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/tree/${CIRCLE_BRANCH}?circle-token=${CIRCLE_TOKEN}&limit=100&offset=${offset}&filter=successful\"\n    http_response=$(curl --write-out '%{http_code}' --silent --output /dev/null \"$url\")\n    if [[ $http_response != \"200\" ]]; then\n        echo \"Error: CircleCI page not found\"\n        exit 0\n    fi\n    response=$(curl \"$url\" | jq '.')\n\n}\n\nfunction run_main() {\n    latest_build_num=0\n    latest_git_hash=\"\"\n    job_name=$CIRCLE_JOB\n    page=0\n    DIFF_URL=\"\"\n    while [[ $latest_git_hash == \"\" ]] && [[ $page < $CIRCLE_FETCH_MAX_PAGES ]]\n    do\n        # https://unix.stackexchange.com/questions/184863/what-is-the-meaning-of-ifs-n-in-bash-scripting\n        IFS=$'\\n'\n        get_recent_builds $page\n        for build in $(echo \"$response\" | jq -c '.[]')\n        do\n            if [[ $(echo \"$build\" | jq -r '.outcome') != \"success\" ]]; then\n                continue\n            fi\n            # To Do: Change to jq instead of grep?\n            if [[ $(echo \"$build\" | grep 'workflows') == \"\" ]]; then \n                continue \n            fi \n            if (( $(echo \"$build\" | jq  -r '.build_num') > latest_build_num )) && [[ $(echo \"$build\" | jq -r '.workflows.job_name') == \"$job_name\" ]]; then\n                latest_build_num=$(echo \"$build\" | jq -r '.build_num') \n                latest_git_hash=$(echo \"$build\" | jq -r '.vcs_revision')\n            fi\n        done\n        if [ -z \"$latest_git_hash\" ]; then\n            page=$((page+1))\n        fi\n\n    done\n    if [ -n \"$latest_git_hash\" ]; then\n        DIFF_URL=\"https://github.com/kr-project/${CIRCLE_PROJECT_REPONAME}/compare/${latest_git_hash}...${CIRCLE_SHA1}\"\n        echo \"$DIFF_URL\"\n        echo \"export DIFF_URL=$DIFF_URL\" >> \"$BASH_ENV\"\n    fi\n}\n\n# Will not run if sourced for bats-core tests.\n# View src/tests for more information.\nORB_TEST_ENV=\"bats-core\"\nif [ \"${0#*$ORB_TEST_ENV}\" == \"$0\" ]; then\n    run_main\nfi\n"
+                command: "#!/bin/bash\nCIRCLE_FETCH_PAGE_SIZE=100\nCIRCLE_FETCH_MAX_PAGES=100\n\nfunction get_recent_builds() {\n    response=\"\"\n    offset=$(($1*CIRCLE_FETCH_PAGE_SIZE))\n    url=\"https://circleci.com/api/v1/project/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/tree/${CIRCLE_BRANCH}?circle-token=${CIRCLECI_TOKEN}&limit=100&offset=${offset}&filter=successful\"\n    http_response=$(curl --write-out '%{http_code}' --silent --output /dev/null \"$url\")\n    if [[ $http_response != \"200\" ]]; then\n        echo \"Error: CircleCI page not found\"\n        exit 0\n    fi\n    response=$(curl \"$url\" | jq '.')\n\n}\n\nfunction run_main() {\n    latest_build_num=0\n    latest_git_hash=\"\"\n    job_name=$CIRCLE_JOB\n    page=0\n    DIFF_URL=\"\"\n    while [[ $latest_git_hash == \"\" ]] && [[ $page < $CIRCLE_FETCH_MAX_PAGES ]]\n    do\n        # https://unix.stackexchange.com/questions/184863/what-is-the-meaning-of-ifs-n-in-bash-scripting\n        IFS=$'\\n'\n        get_recent_builds $page\n        for build in $(echo \"$response\" | jq -c '.[]')\n        do\n            if [[ $(echo \"$build\" | jq -r '.outcome') != \"success\" ]]; then\n                continue\n            fi\n            # To Do: Change to jq instead of grep?\n            if [[ $(echo \"$build\" | grep 'workflows') == \"\" ]]; then \n                continue \n            fi \n            if (( $(echo \"$build\" | jq  -r '.build_num') > latest_build_num )) && [[ $(echo \"$build\" | jq -r '.workflows.job_name') == \"$job_name\" ]]; then\n                latest_build_num=$(echo \"$build\" | jq -r '.build_num') \n                latest_git_hash=$(echo \"$build\" | jq -r '.vcs_revision')\n            fi\n        done\n        if [ -z \"$latest_git_hash\" ]; then\n            page=$((page+1))\n        fi\n\n    done\n    if [ -n \"$latest_git_hash\" ]; then\n        DIFF_URL=\"https://github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/compare/${latest_git_hash}...${CIRCLE_SHA1}\"\n        echo \"$DIFF_URL\"\n        echo \"export DIFF_URL=$DIFF_URL\" >> \"$BASH_ENV\"\n    fi\n}\n\n# Will not run if sourced for bats-core tests.\nORB_TEST_ENV=\"bats-core\"\nif [ \"${0#*$ORB_TEST_ENV}\" == \"$0\" ]; then\n    run_main\nfi\n"
                 environment:
-                    CIRCLE_TOKEN: << parameters.CIRCLE_TOKEN >>
+                    CIRCLE_TOKEN: << parameters.circle_token >>
                 name: Get diff url
                 when: on_fail
             - run:
@@ -103,8 +120,7 @@ commands:
                       "details": {
                         "build_number":env.CIRCLE_PREVIOUS_BUILD_NUM,
                         "build_url": env.CIRCLE_BUILD_URL
-                        },
-                      "tags": ["TestingAlerts"],
+                        }
                     }' > /tmp/raw-webhook.json
                 name: Bundle build info into webhook payload
                 when: always
@@ -113,16 +129,16 @@ commands:
                 steps:
                     - run:
                         command: |
-                            cat /tmp/raw-webhook.json | jq --arg USER_EMAIL $USER_EMAIL '.responders +=  [{"username":$USER_EMAIL, "type":"user"}]' > /tmp/webhook2.json
-                            cp /tmp/webhook2.json /tmp/raw-webhook.json
+                            cat /tmp/raw-webhook.json | jq --arg USER_EMAIL $USER_EMAIL '.details.username +=  $USER_EMAIL ' > /tmp/webhook_temp.json
+                            mv /tmp/webhook_temp.json /tmp/raw-webhook.json
                         name: Add user email to Webhook
             - when:
                 condition: $DIFF_URL
                 steps:
                     - run:
                         command: |
-                            cat /tmp/raw-webhook.json | jq --arg DIFF_URL $DIFF_URL '.description +=  " Compare with last passing commit: '$DIFF_URL'"' > /tmp/raw-webhook2.json
-                            cp /tmp/raw-webhook2.json /tmp/raw-webhook.json
+                            cat /tmp/raw-webhook.json | jq --arg DIFF_URL $DIFF_URL '.description +=  " Compare with last passing commit: '$DIFF_URL'"' > /tmp/webhook_temp.json
+                            mv /tmp/webhook_temp.json /tmp/raw-webhook.json
                         name: Add latest git hash to Webhook
             - when:
                 condition: <<parameters.on_success>>
@@ -154,11 +170,6 @@ commands:
               5. Setup a Slack Bot account with scopes `users:read`, `users:read.email`, and `chat:write`.
               6. Configure orb based on required args
         parameters:
-            CODA_API_TOKEN:
-                default: $STAGING_CODA_TOKEN
-                description: |
-                    Env var of a token granted read access to the CODA_USER_ROSTER_TABLE_URL document.
-                type: string
             CODA_CIRCLECI_USER_ALIAS_COL:
                 default: c-26If9Zttyp
                 description: |
@@ -167,7 +178,7 @@ commands:
             CODA_CIRCLECI_USER_NAME_COL:
                 default: c-6ni4kHGNwE
                 description: |
-                    Coda columnId of the column storing the CircleCI username.
+                    Coda columnId of the column storing the CircleCI username in the CODA_USER_ROSTER_TABLE_URL document.
                 type: string
             CODA_USER_ROSTER_TABLE_URL:
                 default: https://staging.coda.io/apis/v1/docs/s2i6oFeghW/tables/grid-QGyaiXZDwu/rows
@@ -180,7 +191,13 @@ commands:
                 description: |
                     Optional email domain for users within the workspace.   Must be specified if user aliases are not fully qualified.
                 type: string
-            SLACK_BOT_TOKEN:
+            coda_api_token:
+                default: ${STAGING_CODA_TOKEN}
+                description: |
+                    Env var of a token granted read access to the CODA_USER_ROSTER_TABLE_URL document.
+                type: string
+            slack_bot_token:
+                default: ${PUSH_REMINDER_BOT_TOKEN}
                 description: |
                     Token used by Slack bot application.   Must have scopes `users:read`, `users:read.email`, and `chat:write`.
                 type: string
@@ -191,7 +208,13 @@ commands:
                 type: string
         steps:
             - run:
-                command: "#!/bin/bash\nset -eo pipefail\nCODA_CIRCLECI_USER_NAME_COL=\"c-6ni4kHGNwE\"\nCODA_CIRCLECI_USER_ALIAS_COL=\"c-26If9Zttyp\"\nUSER_EMAIL=\"\"\nCIRCLE_USERNAME=$CIRCLE_USERNAME\nfunction run_main() {\n    USER_ALIAS=$(curl -s -H \"Authorization: Bearer ${CODA_API_TOKEN}\" \\\n    -G --data-urlencode \"query=${CODA_CIRCLECI_USER_NAME_COL}:\\\"${CIRCLE_USERNAME}\\\"\" \\\n    'https://staging.coda.io/apis/v1/docs/s2i6oFeghW/tables/grid-QGyaiXZDwu/rows' \\\n    | jq --arg CODA_CIRCLECI_USER_ALIAS_COL \"$CODA_CIRCLECI_USER_ALIAS_COL\" '.items[0].values.\"'$CODA_CIRCLECI_USER_ALIAS_COL'\"' | tr -d '\"')\n    if [ \"$USER_ALIAS\" != \"null\" ]; then\n        USER_EMAIL=$([[ \"${USER_ALIAS}\" == *@* ]] && echo \"$USER_ALIAS\" || echo \"${USER_ALIAS}@coda.io\")\n        echo \"$USER_EMAIL\"\n        echo \"export USER_EMAIL=${USER_EMAIL}\" >> \"$BASH_ENV\"\n        \n    fi\n    \n    if [ -n \"$PUSH_REMINDER_BOT_TOKEN\" ]; then \n        echo \"$USER_EMAIL\"\n        SLACK_USER_ID=$(curl -s -H \"Authorization: Bearer $PUSH_REMINDER_BOT_TOKEN\" \\\n            \"https://slack.com/api/users.lookupByEmail?email=${USER_EMAIL}\" \\\n            | jq '.user.id' | tr -d '\"')\n        echo \"$SLACK_USER_ID\"\n        echo \"export SLACK_USER_ID=${SLACK_USER_ID}\" >> \"$BASH_ENV\"\n    fi\n}\n\nORB_TEST_ENV=\"bats-core\"\nif [ \"${0#*$ORB_TEST_ENV}\" == \"$0\" ]; then\n    run_main\nfi"
+                command: "#!/bin/bash\nset -eo pipefail\nUSER_EMAIL=\"\"\nCIRCLE_USERNAME=$CIRCLE_USERNAME\nfunction run_main() {\n    USER_ALIAS=$(curl -s -H \"Authorization: Bearer ${CODA_API_TOKEN}\" \\\n    -G --data-urlencode \"query=${CODA_CIRCLECI_USER_NAME_COL}:\\\"${CIRCLE_USERNAME}\\\"\" \\\n    ${CODA_USER_ROSTER_TABLE_URL} \\\n    | jq --arg CODA_CIRCLECI_USER_ALIAS_COL \"$CODA_CIRCLECI_USER_ALIAS_COL\" '.items[0].values.\"'$CODA_CIRCLECI_USER_ALIAS_COL'\"' | tr -d '\"')\n    if [ \"$USER_ALIAS\" != \"null\" ]; then\n        USER_EMAIL=$([[ \"${USER_ALIAS}\" == *@* ]] && echo \"$USER_ALIAS\" || echo \"${USER_ALIAS}@coda.io\")\n        echo \"$USER_EMAIL\"\n        echo \"export USER_EMAIL=${USER_EMAIL}\" >> \"$BASH_ENV\"\n        \n    fi\n    \n    if [ -n \"$SLACK_BOT_TOKEN\" ]; then \n        echo \"$USER_EMAIL\"\n        SLACK_USER_ID=$(curl -s -H \"Authorization: Bearer $SLACK_BOT_TOKEN\" \\\n            \"https://slack.com/api/users.lookupByEmail?email=${USER_EMAIL}\" \\\n            | jq '.user.id' | tr -d '\"')\n        echo \"$SLACK_USER_ID\"\n        echo \"export SLACK_USER_ID=${SLACK_USER_ID}\" >> \"$BASH_ENV\"\n    fi\n}\n\n# Will not run if sourced for bats.\nORB_TEST_ENV=\"bats-core\"\nif [ \"${0#*$ORB_TEST_ENV}\" == \"$0\" ]; then\n    run_main\nfi"
+                environment:
+                    CODA_API_TOKEN: <<parameters.coda_api_token>>
+                    CODA_CIRCLECI_USER_ALIAS_COL: <<parameters.CODA_CIRCLECI_USER_ALIAS_COL>>
+                    CODA_CIRCLECI_USER_NAME_COL: <<parameters.CODA_CIRCLECI_USER_NAME_COL>>
+                    CODA_USER_ROSTER_TABLE_URL: <<parameters.CODA_USER_ROSTER_TABLE_URL>>
+                    SLACK_BOT_TOKEN: <<parameters.slack_bot_token>>
                 name: Fetch User Information from Look Up Table
             - when:
                 condition: $SLACK_USER_ID
@@ -205,7 +228,7 @@ commands:
                                 \"channel\": \"${SLACK_USER_ID}\", \
                                 \"attachments\": [ \
                                   { \
-                                    \"text\": \"Pending Approval for ${CIRCLE_PROJECT_REPONAME} push (${CIRCLE_USERNAME})\", \
+                                    \"text\": \"Pending Approval for ${CIRCLE_PROJECT_REPONAME} (${CIRCLE_USERNAME})\", \
                                     \"fields\": [ \
                                       { \
                                         \"title\": \"Project\", \
@@ -245,11 +268,11 @@ jobs:
             Depends on jq being present.
         executor: default
         parameters:
-            CIRCLE_TOKEN:
-                default: CIRCLE_TOKEN
+            circle_token:
+                default: $CIRCLECI_TOKEN
                 description: |
                     Env var of a token granted read access to the CircleCI api
-                type: env_var_name
+                type: string
             vcs:
                 default: gh
                 description: |
@@ -257,7 +280,7 @@ jobs:
                 type: string
         steps:
             - cancel-older-awaiting-approvals:
-                CIRCLE_TOKEN: << parameters.CIRCLE_TOKEN >>
+                circle_token: << parameters.circle_token >>
                 vcs: << parameters.vcs >>
     slack-notify-waiting-for-approval:
         description: |
@@ -272,11 +295,6 @@ jobs:
               6. Configure orb based on required args
         executor: default
         parameters:
-            CODA_API_TOKEN:
-                default: $STAGING_CODA_TOKEN
-                description: |
-                    Env var of a token granted read access to the CODA_USER_ROSTER_TABLE_URL document.
-                type: string
             CODA_CIRCLECI_USER_ALIAS_COL:
                 default: c-26If9Zttyp
                 description: |
@@ -298,7 +316,13 @@ jobs:
                 description: |
                     Optional email domain for users within the workspace.   Must be specified if user aliases are not fully qualified.
                 type: string
-            SLACK_BOT_TOKEN:
+            coda_api_token:
+                default: $STAGING_CODA_TOKEN
+                description: |
+                    Env var of a token granted read access to the CODA_USER_ROSTER_TABLE_URL document.
+                type: string
+            slack_bot_token:
+                default: $PUSH_REMINDER_BOT_TOKEN
                 description: |
                     Token used by Slack bot application.   Must have scopes `users:read`, `users:read.email`, and `chat:write`.
                 type: string
@@ -309,20 +333,27 @@ jobs:
                 type: string
         steps:
             - slack-notify-waiting-for-approval:
-                CODA_API_TOKEN: << parameters.CODA_API_TOKEN >>
                 CODA_CIRCLECI_USER_ALIAS_COL: << parameters.CODA_CIRCLECI_USER_ALIAS_COL >>
                 CODA_CIRCLECI_USER_NAME_COL: << parameters.CODA_CIRCLECI_USER_NAME_COL >>
                 CODA_USER_ROSTER_TABLE_URL: << parameters.CODA_USER_ROSTER_TABLE_URL >>
                 EMAIL_DOMAIN: << parameters.EMAIL_DOMAIN >>
-                SLACK_BOT_TOKEN: << parameters.SLACK_BOT_TOKEN >>
+                coda_api_token: << parameters.coda_api_token >>
+                slack_bot_token: << parameters.slack_bot_token >>
                 vcs: << parameters.vcs >>
 examples:
     example:
-        description: "Three differeent use cases \n"
         usage:
             version: "2.1"
             orbs:
                 utils: coda/utils@<version>
+            jobs:
+                my-job:
+                    docker:
+                        - image: cimg/base:stable
+                    steps:
+                        - checkout
+                        - utils/notify:
+                            on_failure: true
             workflows:
                 use-my-orb:
                     jobs:

@@ -1,10 +1,11 @@
 #!/bin/bash
 CIRCLE_FETCH_PAGE_SIZE=100
 CIRCLE_FETCH_MAX_PAGES=100
-response=""
+
 function get_recent_builds() {
+    response=""
     offset=$(($1*CIRCLE_FETCH_PAGE_SIZE))
-    url="https://circleci.com/api/v1/project/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/tree/${CIRCLE_BRANCH}?circle-token=${CIRCLE_TOKEN}&limit=100&offset=${offset}&filter=successful"
+    url="https://circleci.com/api/v1/project/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/tree/${CIRCLE_BRANCH}?circle-token=${CIRCLECI_TOKEN}&limit=100&offset=${offset}&filter=successful"
     http_response=$(curl --write-out '%{http_code}' --silent --output /dev/null "$url")
     if [[ $http_response != "200" ]]; then
         echo "Error: CircleCI page not found"
@@ -45,14 +46,13 @@ function run_main() {
 
     done
     if [ -n "$latest_git_hash" ]; then
-        DIFF_URL="https://github.com/kr-project/${CIRCLE_PROJECT_REPONAME}/compare/${latest_git_hash}...${CIRCLE_SHA1}"
+        DIFF_URL="https://github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/compare/${latest_git_hash}...${CIRCLE_SHA1}"
         echo "$DIFF_URL"
         echo "export DIFF_URL=$DIFF_URL" >> "$BASH_ENV"
     fi
 }
 
 # Will not run if sourced for bats-core tests.
-# View src/tests for more information.
 ORB_TEST_ENV="bats-core"
 if [ "${0#*$ORB_TEST_ENV}" == "$0" ]; then
     run_main

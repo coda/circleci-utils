@@ -15,14 +15,14 @@ parameters:
       https://coda.io/apis/v1/docs/<DOCID>/tables/<TABLEID>/rows.
     type: string
     default: https://staging.coda.io/apis/v1/docs/s2i6oFeghW/tables/grid-QGyaiXZDwu/rows
-  CODA_API_TOKEN:
+  coda_api_token:
     description: |
       Env var of a token granted read access to the CODA_USER_ROSTER_TABLE_URL document.
     type: string
     default: ${STAGING_CODA_TOKEN}
   CODA_CIRCLECI_USER_NAME_COL:
     description: |
-      Coda columnId of the column storing the CircleCI username.
+      Coda columnId of the column storing the CircleCI username in the CODA_USER_ROSTER_TABLE_URL document.
     type: string
     default: c-6ni4kHGNwE
   CODA_CIRCLECI_USER_ALIAS_COL:
@@ -35,7 +35,7 @@ parameters:
       Optional email domain for users within the workspace.   Must be specified if user aliases are not fully qualified.
     type: string
     default: coda.io
-  SLACK_BOT_TOKEN:
+  slack_bot_token:
     type: string
     description: |
       Token used by Slack bot application.   Must have scopes `users:read`, `users:read.email`, and `chat:write`.
@@ -49,6 +49,12 @@ steps:
 - run:
     name: Fetch User Information from Look Up Table
     command: <<include(scripts/fetch_user_handles.sh)>>
+    environment:
+      SLACK_BOT_TOKEN: <<parameters.slack_bot_token>>
+      CODA_API_TOKEN: <<parameters.coda_api_token>>
+      CODA_CIRCLECI_USER_ALIAS_COL: <<parameters.CODA_CIRCLECI_USER_ALIAS_COL>>
+      CODA_CIRCLECI_USER_NAME_COL: <<parameters.CODA_CIRCLECI_USER_NAME_COL>>
+      CODA_USER_ROSTER_TABLE_URL: <<parameters.CODA_USER_ROSTER_TABLE_URL>>
 - when:
     condition: $SLACK_USER_ID
     steps:
@@ -62,7 +68,7 @@ steps:
               \"channel\": \"${SLACK_USER_ID}\", \
               \"attachments\": [ \
                 { \
-                  \"text\": \"Pending Approval for ${CIRCLE_PROJECT_REPONAME} push (${CIRCLE_USERNAME})\", \
+                  \"text\": \"Pending Approval for ${CIRCLE_PROJECT_REPONAME} (${CIRCLE_USERNAME})\", \
                   \"fields\": [ \
                     { \
                       \"title\": \"Project\", \
