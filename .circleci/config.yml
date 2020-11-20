@@ -41,12 +41,12 @@ jobs:
       - utils/notify:
           on_success: true
   integration-test-slack:
-      docker:
+    docker:
       - image: cimg/base:stable
-      steps:
-        - utils/slack-notify-waiting-for-approval:
-          CODA_API_TOKEN: ${GITHUB_TO_SLACK_CODA_API_TOKEN}
-          SLACK_BOT_TOKEN: ${PUSH_REMINDER_BOT_TOKEN}
+    steps:
+      - utils/slack-notify-waiting-for-approval:
+          CODA_API_TOKEN: GITHUB_TO_SLACK_CODA_API_TOKEN
+          SLACK_BOT_TOKEN: PUSH_REMINDER_BOT_TOKEN
 workflows:
   # Prior to producing a development orb (which requires credentials) basic validation, linting, and even unit testing can be performed.
   # This workflow will run on every commit
