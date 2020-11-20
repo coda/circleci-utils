@@ -105,7 +105,8 @@ workflows:
           fail-if-semver-not-indicated: true
           publish-version-tag: false
           requires:
-            - integration-test-1
+            - integration-test-notify
+            - integration-test-slack
           filters:
             branches:
               only: 
