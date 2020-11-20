@@ -4,6 +4,7 @@ Orbs are shipped as individual `orb.yml` files, however, to make development eas
 
 The default `.circleci/config.yml` file contains the configuration code needed to automatically pack, test, and deploy and changes made to the contents of the orb source in this directory.
 
+To manually pack your `orb.yml`, you can run `circleci orb pack .  > orb.yml` at he `@orb.yml` level.
 ## @orb.yml
 
 This is the entry point for our orb "tree", which becomes our `orb.yml` file later.
