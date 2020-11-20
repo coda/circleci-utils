@@ -46,8 +46,6 @@ parameters:
     default: gh
 steps:
 - run:
-    environment:
-      SLACK_BOT_TOKEN: $<< parameters.SLACK_BOT_TOKEN >>
     name: Fetch User Information from Look Up Table
     command: <<include(scripts/fetch_user_handles.sh)>>
 - when:

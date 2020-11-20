@@ -14,4 +14,12 @@ setup() {
     export CIRCLE_USERNAME="nonexistant_user"
     result=$(run_main)
     [[ "$result" != "coda@io" ]]
+
+}
+
+@test '4: Check Codas Slack Handle Exists' {
+    export CIRCLE_USERNAME="gita-v"
+    result=$(run_main)
+    [[ "$result" == *"U01DJE1DABE"* ]]
+    
 }
