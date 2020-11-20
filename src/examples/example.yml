@@ -17,5 +17,5 @@ usage:
         - utils/cancel-older-awaiting-approvals:
             token: ${CIRCLECI_API_TOKEN}
         - utils/slack-notify-waiting-for-approval:
-            CODA_API_TOKEN: ${GITHUB_TO_SLACK_CODA_API_TOKEN}
+            CODA_API_TOKEN: ${STAGING_CODA_API_TOKEN}
             SLACK_BOT_TOKEN: ${PUSH_REMINDER_BOT_TOKEN}

@@ -3,33 +3,7 @@ setup() {
     # Load our script file.
     source ./src/scripts/fetch_user_handles.sh
 }
-  CODA_USER_ROSTER_TABLE_URL:
-    description: |
-      Fully qualified API URL to a table containing CIRCLECI_USERNAMEs to email aliases.    Must be of the form
-      https://coda.io/apis/v1/docs/<DOCID>/tables/<TABLEID>/rows.
-    type: string
-    default: 
-  coda_api_token:
-    description: |
-      Env var of a token granted read access to the CODA_USER_ROSTER_TABLE_URL document.
-    type: string
-    default: ${STAGING_CODA_TOKEN}
-  CODA_CIRCLECI_USER_NAME_COL:
-    description: |
-      Coda columnId of the column storing the CircleCI username in the CODA_USER_ROSTER_TABLE_URL document.
-    type: string
-    default: c-6ni4kHGNwE
 
-  EMAIL_DOMAIN:
-    description: |
-      Optional email domain for users within the workspace.   Must be specified if user aliases are not fully qualified.
-    type: string
-    default: coda.io
-  slack_bot_token:
-    type: string
-    description: |
-      Token used by Slack bot application.   Must have scopes `users:read`, `users:read.email`, and `chat:write`.
-    default: ${PUSH_REMINDER_BOT_TOKEN}
 
 @test '2: Check Coda Email Exists' {
     export CIRCLE_USERNAME="gita-v"
