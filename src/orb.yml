@@ -1,9 +1,7 @@
 version: 2.1
-description: |
-    Sample orb description
+description: "Utility orb for Coda Allows for: - Push alerts to opsgenie - Push Slack notifications - Cancel older CI alerts waiting for approval \n"
 display:
-    home_url: https://www.website.com/docs
-    source_url: https://www.github.com/EXAMPLE_ORG/EXAMPLE_PROJECT
+    source_url: https://github.com/kr-project/circleci-utils
 commands:
     cancel-older-awaiting-approvals:
         description: |
@@ -81,7 +79,7 @@ commands:
                 type: boolean
         steps:
             - run:
-                command: "#!/bin/bash\nset -eo pipefail\nCODA_CIRCLECI_USER_NAME_COL=\"c-6ni4kHGNwE\"\nCODA_CIRCLECI_USER_ALIAS_COL=\"c-26If9Zttyp\"\nUSER_EMAIL=\"\"\nCIRCLE_USERNAME='gita-v'\nfunction run_main() {\n    USER_ALIAS=$(curl -s -H \"Authorization: Bearer ${CODA_API_TOKEN}\" \\\n    -G --data-urlencode \"query=${CODA_CIRCLECI_USER_NAME_COL}:\\\"${CIRCLE_USERNAME}\\\"\" \\\n    'https://staging.coda.io/apis/v1/docs/s2i6oFeghW/tables/grid-QGyaiXZDwu/rows' \\\n    | jq --arg CODA_CIRCLECI_USER_ALIAS_COL \"$CODA_CIRCLECI_USER_ALIAS_COL\" '.items[0].values.\"'$CODA_CIRCLECI_USER_ALIAS_COL'\"' | tr -d '\"')\n    if [ \"$USER_ALIAS\" != \"null\" ]; then\n        USER_EMAIL=$([[ \"${USER_ALIAS}\" == *@* ]] && echo \"$USER_ALIAS\" || echo \"${USER_ALIAS}@coda.io\")\n        echo \"$USER_EMAIL\"\n        echo \"export USER_EMAIL=${USER_EMAIL}\" >> \"$BASH_ENV\"\n        \n    fi\n    \n    if [ -n \"$SLACK_BOT_TOKEN\" ]; then \n        SLACK_USER_ID=$(curl -s -H \"Authorization: Bearer $SLACK_BOT_TOKEN\" \\\n            \"https://slack.com/api/users.lookupByEmail?email=${USER_EMAIL}\" \\\n            | jq '.user.id' | tr -d '\"')\n        echo \"export SLACK_USER_ID=${SLACK_USER_ID}\" >> \"$BASH_ENV\"\n    fi\n}\n\nORB_TEST_ENV=\"bats-core\"\nif [ \"${0#*$ORB_TEST_ENV}\" == \"$0\" ]; then\n    run_main\nfi"
+                command: "#!/bin/bash\nset -eo pipefail\nCODA_CIRCLECI_USER_NAME_COL=\"c-6ni4kHGNwE\"\nCODA_CIRCLECI_USER_ALIAS_COL=\"c-26If9Zttyp\"\nUSER_EMAIL=\"\"\nCIRCLE_USERNAME=$CIRCLE_USERNAME\nfunction run_main() {\n    USER_ALIAS=$(curl -s -H \"Authorization: Bearer ${CODA_API_TOKEN}\" \\\n    -G --data-urlencode \"query=${CODA_CIRCLECI_USER_NAME_COL}:\\\"${CIRCLE_USERNAME}\\\"\" \\\n    'https://staging.coda.io/apis/v1/docs/s2i6oFeghW/tables/grid-QGyaiXZDwu/rows' \\\n    | jq --arg CODA_CIRCLECI_USER_ALIAS_COL \"$CODA_CIRCLECI_USER_ALIAS_COL\" '.items[0].values.\"'$CODA_CIRCLECI_USER_ALIAS_COL'\"' | tr -d '\"')\n    if [ \"$USER_ALIAS\" != \"null\" ]; then\n        USER_EMAIL=$([[ \"${USER_ALIAS}\" == *@* ]] && echo \"$USER_ALIAS\" || echo \"${USER_ALIAS}@coda.io\")\n        echo \"$USER_EMAIL\"\n        echo \"export USER_EMAIL=${USER_EMAIL}\" >> \"$BASH_ENV\"\n        \n    fi\n    \n    if [ -n \"$PUSH_REMINDER_BOT_TOKEN\" ]; then \n        echo \"$USER_EMAIL\"\n        SLACK_USER_ID=$(curl -s -H \"Authorization: Bearer $PUSH_REMINDER_BOT_TOKEN\" \\\n            \"https://slack.com/api/users.lookupByEmail?email=${USER_EMAIL}\" \\\n            | jq '.user.id' | tr -d '\"')\n        echo \"$SLACK_USER_ID\"\n        echo \"export SLACK_USER_ID=${SLACK_USER_ID}\" >> \"$BASH_ENV\"\n    fi\n}\n\nORB_TEST_ENV=\"bats-core\"\nif [ \"${0#*$ORB_TEST_ENV}\" == \"$0\" ]; then\n    run_main\nfi"
                 environment:
                     CODA_API_TOKEN: << parameters.CODA_API_TOKEN >>
                 name: Fetch User Information
@@ -191,9 +189,7 @@ commands:
                 type: string
         steps:
             - run:
-                command: "#!/bin/bash\nset -eo pipefail\nCODA_CIRCLECI_USER_NAME_COL=\"c-6ni4kHGNwE\"\nCODA_CIRCLECI_USER_ALIAS_COL=\"c-26If9Zttyp\"\nUSER_EMAIL=\"\"\nCIRCLE_USERNAME='gita-v'\nfunction run_main() {\n    USER_ALIAS=$(curl -s -H \"Authorization: Bearer ${CODA_API_TOKEN}\" \\\n    -G --data-urlencode \"query=${CODA_CIRCLECI_USER_NAME_COL}:\\\"${CIRCLE_USERNAME}\\\"\" \\\n    'https://staging.coda.io/apis/v1/docs/s2i6oFeghW/tables/grid-QGyaiXZDwu/rows' \\\n    | jq --arg CODA_CIRCLECI_USER_ALIAS_COL \"$CODA_CIRCLECI_USER_ALIAS_COL\" '.items[0].values.\"'$CODA_CIRCLECI_USER_ALIAS_COL'\"' | tr -d '\"')\n    if [ \"$USER_ALIAS\" != \"null\" ]; then\n        USER_EMAIL=$([[ \"${USER_ALIAS}\" == *@* ]] && echo \"$USER_ALIAS\" || echo \"${USER_ALIAS}@coda.io\")\n        echo \"$USER_EMAIL\"\n        echo \"export USER_EMAIL=${USER_EMAIL}\" >> \"$BASH_ENV\"\n        \n    fi\n    \n    if [ -n \"$SLACK_BOT_TOKEN\" ]; then \n        SLACK_USER_ID=$(curl -s -H \"Authorization: Bearer $SLACK_BOT_TOKEN\" \\\n            \"https://slack.com/api/users.lookupByEmail?email=${USER_EMAIL}\" \\\n            | jq '.user.id' | tr -d '\"')\n        echo \"export SLACK_USER_ID=${SLACK_USER_ID}\" >> \"$BASH_ENV\"\n    fi\n}\n\nORB_TEST_ENV=\"bats-core\"\nif [ \"${0#*$ORB_TEST_ENV}\" == \"$0\" ]; then\n    run_main\nfi"
-                environment:
-                    SLACK_BOT_TOKEN: $<< parameters.SLACK_BOT_TOKEN >>
+                command: "#!/bin/bash\nset -eo pipefail\nCODA_CIRCLECI_USER_NAME_COL=\"c-6ni4kHGNwE\"\nCODA_CIRCLECI_USER_ALIAS_COL=\"c-26If9Zttyp\"\nUSER_EMAIL=\"\"\nCIRCLE_USERNAME=$CIRCLE_USERNAME\nfunction run_main() {\n    USER_ALIAS=$(curl -s -H \"Authorization: Bearer ${CODA_API_TOKEN}\" \\\n    -G --data-urlencode \"query=${CODA_CIRCLECI_USER_NAME_COL}:\\\"${CIRCLE_USERNAME}\\\"\" \\\n    'https://staging.coda.io/apis/v1/docs/s2i6oFeghW/tables/grid-QGyaiXZDwu/rows' \\\n    | jq --arg CODA_CIRCLECI_USER_ALIAS_COL \"$CODA_CIRCLECI_USER_ALIAS_COL\" '.items[0].values.\"'$CODA_CIRCLECI_USER_ALIAS_COL'\"' | tr -d '\"')\n    if [ \"$USER_ALIAS\" != \"null\" ]; then\n        USER_EMAIL=$([[ \"${USER_ALIAS}\" == *@* ]] && echo \"$USER_ALIAS\" || echo \"${USER_ALIAS}@coda.io\")\n        echo \"$USER_EMAIL\"\n        echo \"export USER_EMAIL=${USER_EMAIL}\" >> \"$BASH_ENV\"\n        \n    fi\n    \n    if [ -n \"$PUSH_REMINDER_BOT_TOKEN\" ]; then \n        echo \"$USER_EMAIL\"\n        SLACK_USER_ID=$(curl -s -H \"Authorization: Bearer $PUSH_REMINDER_BOT_TOKEN\" \\\n            \"https://slack.com/api/users.lookupByEmail?email=${USER_EMAIL}\" \\\n            | jq '.user.id' | tr -d '\"')\n        echo \"$SLACK_USER_ID\"\n        echo \"export SLACK_USER_ID=${SLACK_USER_ID}\" >> \"$BASH_ENV\"\n    fi\n}\n\nORB_TEST_ENV=\"bats-core\"\nif [ \"${0#*$ORB_TEST_ENV}\" == \"$0\" ]; then\n    run_main\nfi"
                 name: Fetch User Information from Look Up Table
             - when:
                 condition: $SLACK_USER_ID
@@ -201,7 +197,7 @@ commands:
                     - run:
                         command: |-
                             set -eo pipefail
-                            curl -X POST -H "Authorization: Bearer << parameters.SLACK_BOT_TOKEN >>" \
+                            curl -X POST -H "Authorization: Bearer $PUSH_REMINDER_BOT_TOKEN" \
                               -H "Content-Type: application/json" -d \
                               "{ \
                                 \"channel\": \"${SLACK_USER_ID}\", \
