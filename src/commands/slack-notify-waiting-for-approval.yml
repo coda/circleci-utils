@@ -57,7 +57,7 @@ steps:
         name: Send Slack Message 
         command: |
           set -eo pipefail
-          curl -X POST -H "Authorization: Bearer $<< parameters.SLACK_BOT_TOKEN >>" \
+          curl -X POST -H "Authorization: Bearer $PUSH_REMINDER_BOT_TOKEN" \
             -H "Content-Type: application/json" -d \
             "{ \
               \"channel\": \"${SLACK_USER_ID}\", \
