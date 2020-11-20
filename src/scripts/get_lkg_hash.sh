@@ -34,7 +34,7 @@ function run_main() {
             if [[ $(echo "$build" | grep 'workflows') == "" ]]; then 
                 continue 
             fi 
-            if (( $(echo "$build" | jq  -r '.build_num') > $latest_build_num )) && [[ $(echo "$build" | jq -r '.workflows.job_name') == $job_name ]]; then
+            if (( $(echo "$build" | jq  -r '.build_num') > latest_build_num )) && [[ $(echo "$build" | jq -r '.workflows.job_name') == "$job_name" ]]; then
                 latest_build_num=$(echo "$build" | jq -r '.build_num') 
                 latest_git_hash=$(echo "$build" | jq -r '.vcs_revision')
             fi
@@ -46,7 +46,7 @@ function run_main() {
     done
     if [ -n "$latest_git_hash" ]; then
         DIFF_URL="https://github.com/kr-project/${CIRCLE_PROJECT_REPONAME}/compare/${latest_git_hash}...${CIRCLE_SHA1}"
-        echo $DIFF_URL
+        echo "$DIFF_URL"
         echo "export DIFF_URL=$DIFF_URL" >> "$BASH_ENV"
     fi
 }
