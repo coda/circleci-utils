@@ -5,10 +5,10 @@ CIRCLE_USERNAME=$CIRCLE_USERNAME
 function run_main() {
     USER_ALIAS=$(curl -s -H "Authorization: Bearer ${CODA_API_TOKEN}" \
     -G --data-urlencode "query=${CODA_CIRCLECI_USER_NAME_COL}:\"${CIRCLE_USERNAME}\"" \
-    ${CODA_USER_ROSTER_TABLE_URL} \
-    | jq --arg CODA_CIRCLECI_USER_ALIAS_COL "$CODA_CIRCLECI_USER_ALIAS_COL" '.items[0].values."'$CODA_CIRCLECI_USER_ALIAS_COL'"' | tr -d '"')
+    "${CODA_USER_ROSTER_TABLE_URL}" \
+    | jq --arg CODA_CIRCLECI_USER_ALIAS_COL "$CODA_CIRCLECI_USER_ALIAS_COL" '.items[0].values."'"$CODA_CIRCLECI_USER_ALIAS_COL"'"' | tr -d '"')
     if [ "$USER_ALIAS" != "null" ]; then
-        USER_EMAIL=$([[ "${USER_ALIAS}" == *@* ]] && echo "$USER_ALIAS" || echo "${USER_ALIAS}@coda.io")
+        USER_EMAIL=$([[ "${USER_ALIAS}" == *@* ]] && echo "$USER_ALIAS" || echo "${USER_ALIAS}@${EMAIL_DOMAIN}")
         echo "$USER_EMAIL"
         echo "export USER_EMAIL=${USER_EMAIL}" >> "$BASH_ENV"
         

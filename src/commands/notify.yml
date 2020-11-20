@@ -34,6 +34,11 @@ parameters:
     description: |
       Env var of a token granted read access to the CODA_USER_ROSTER_TABLE_URL document.
     type: string
+  EMAIL_DOMAIN:
+    description: |
+      Optional email domain for users within the workspace.   Must be specified if user aliases are not fully qualified.
+    type: string
+    default: coda.io
   circle_token:
     default: ${CIRCLECI_TOKEN}
     description: |
@@ -49,6 +54,7 @@ steps:
       CODA_CIRCLECI_USER_ALIAS_COL: <<parameters.CODA_CIRCLECI_USER_ALIAS_COL>>
       CODA_CIRCLECI_USER_NAME_COL: <<parameters.CODA_CIRCLECI_USER_NAME_COL>>
       CODA_USER_ROSTER_TABLE_URL: <<parameters.CODA_USER_ROSTER_TABLE_URL>>
+      EMAIL_DOMAIN: <<parameters.EMAIL_DOMAIN>>
 - run:
     name: Get diff url
     when: on_fail
