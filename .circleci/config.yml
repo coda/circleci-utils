@@ -93,7 +93,9 @@ workflows:
       # Run any integration tests defined within the `jobs` key.
       - integration-test-notify
       - integration-test-slack
-      - integration-test-cancel-older-jobs
+      - wait-for-approval:
+          type: approval
+      - utils/cancel-older-awaiting-approvals
       # Publish a semver version of the orb. relies on
       # the commit subject containing the text "[semver:patch|minor|major|skip]"
       # as that will determine whether a patch, minor or major
@@ -109,8 +111,5 @@ workflows:
           requires:
             - integration-test-notify
             - integration-test-slack
-          filters:
-            branches:
-              only: 
-                - master
-                - main
+            - utils/cancel-older-awaiting-approvals
+
