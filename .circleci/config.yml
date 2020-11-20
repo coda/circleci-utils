@@ -31,8 +31,6 @@ jobs:
       - image: cimg/base:stable
     steps:
       - checkout
-      - utils/notify:
-          on_success: true
 
   integration-test-slack:
     docker:
@@ -93,11 +91,8 @@ workflows:
     when: << pipeline.parameters.run-integration-tests >>
     jobs:
       # Run any integration tests defined within the `jobs` key.
-      # To Do add them back
-      # - integration-test-notify
-      # - integration-test-slack
-      - wait-for-approval:
-          type: approval
+      - integration-test-notify
+      - integration-test-slack
       - utils/cancel-older-awaiting-approvals
       # Publish a semver version of the orb. relies on
       # the commit subject containing the text "[semver:patch|minor|major|skip]"
@@ -112,7 +107,7 @@ workflows:
           fail-if-semver-not-indicated: true
           publish-version-tag: false
           requires:
-            # - integration-test-notify
-            # - integration-test-slack
+            - integration-test-notify
+            - integration-test-slack
             - utils/cancel-older-awaiting-approvals
 
