@@ -18,7 +18,8 @@ parameters:
   CODA_API_TOKEN:
     description: |
       Env var of a token granted read access to the CODA_USER_ROSTER_TABLE_URL document.
-    type: string
+    type: env_var_name
+    default: STAGING_CODA_TOKEN
   CODA_CIRCLECI_USER_NAME_COL:
     description: |
       Coda columnId of the column storing the CircelCI username (typically github alias).
@@ -35,10 +36,10 @@ parameters:
     type: string
     default: coda.io
   SLACK_BOT_TOKEN:
+    default: PUSH_REMINDER_BOT_TOKEN
     type: env_var_name
     description: |
       Token used by Slack bot application.   Must have scopes `users:read`, `users:read.email`, and `chat:write`.
-    default: 
   vcs:
     description: |
       Defaults to "gh", but allows other version control systems.

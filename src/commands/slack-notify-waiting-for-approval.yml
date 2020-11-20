@@ -39,7 +39,7 @@ parameters:
     type: env_var_name
     description: |
       Token used by Slack bot application.   Must have scopes `users:read`, `users:read.email`, and `chat:write`.
-    default: 
+    default: PUSH_REMINDER_BOT_TOKEN
   vcs:
     description: |
       Defaults to "gh", but allows other version control systems.
