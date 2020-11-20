@@ -28,9 +28,9 @@ commands:
 
                     BASE_URL="https://circleci.com/api/v2"
                     TOKEN="circle-token=${CIRCLE_TOKEN}"
-
+                    vcs="gh"
                     CURRENT_WORKFLOW=$(curl -s -H "Accept: application/json" "${BASE_URL}/workflow/${CIRCLE_WORKFLOW_ID}?${TOKEN}")
-                    CURRENT_WORKFLOW_TIMESTAMP=$(echo $CURRENT_WORKFLOW | jq -r ".created_at")
+                    CURRENT_WORKFLOW_TIMESTAMP=$(echo "$CURRENT_WORKFLOW" | jq -r ".created_at")
                     echo "Current workflow start time: ${CURRENT_WORKFLOW_TIMESTAMP}"
 
                     PROJECT_SLUG="project/${vcs}%2F${CIRCLE_PROJECT_USERNAME}%2F${CIRCLE_PROJECT_REPONAME}"
@@ -81,7 +81,7 @@ commands:
                 type: boolean
         steps:
             - run:
-                command: "#!/bin/bash\nset -eo pipefail\nCODA_CIRCLECI_USER_NAME_COL=\"c-6ni4kHGNwE\"\nCODA_CIRCLECI_USER_ALIAS_COL=\"c-26If9Zttyp\"\nUSER_EMAIL=\"\"\nCODA_API_TOKEN=\"staging:73bfb954-83a0-4f0d-b679-4d814a2f24d4\"\nCIRCLE_USERNAME='gita-v'\nfunction run_main() {\n    USER_ALIAS=$(curl -s -H \"Authorization: Bearer ${CODA_API_TOKEN}\" \\\n    -G --data-urlencode \"query=${CODA_CIRCLECI_USER_NAME_COL}:\\\"${CIRCLE_USERNAME}\\\"\" \\\n    'https://staging.coda.io/apis/v1/docs/s2i6oFeghW/tables/grid-QGyaiXZDwu/rows' \\\n    | jq --arg CODA_CIRCLECI_USER_ALIAS_COL \"$CODA_CIRCLECI_USER_ALIAS_COL\" '.items[0].values.\"'$CODA_CIRCLECI_USER_ALIAS_COL'\"' | tr -d '\"')\n    if [ \"$USER_ALIAS\" != \"null\" ]; then\n        USER_EMAIL=$([[ \"${USER_ALIAS}\" == *@* ]] && echo \"$USER_ALIAS\" || echo \"${USER_ALIAS}@coda.io\")\n        echo $USER_EMAIL\n        echo \"export USER_EMAIL=${USER_EMAIL}\" >> \"$BASH_ENV\"\n        \n    fi\n    \n    if [ -n \"$SLACK_BOT_TOKEN\" ]; then \n        SLACK_USER_ID=$(curl -s -H \"Authorization: Bearer $SLACK_BOT_TOKEN\" \\\n            \"https://slack.com/api/users.lookupByEmail?email=${USER_EMAIL}\" \\\n            | jq '.user.id' | tr -d '\"')\n        echo \"export SLACK_USER_ID=${SLACK_USER_ID}\" >> \"$BASH_ENV\"\n    fi\n}\n\nORB_TEST_ENV=\"bats-core\"\nif [ \"${0#*$ORB_TEST_ENV}\" == \"$0\" ]; then\n    run_main\nfi"
+                command: "#!/bin/bash\nset -eo pipefail\nCODA_CIRCLECI_USER_NAME_COL=\"c-6ni4kHGNwE\"\nCODA_CIRCLECI_USER_ALIAS_COL=\"c-26If9Zttyp\"\nUSER_EMAIL=\"\"\nCIRCLE_USERNAME='gita-v'\nfunction run_main() {\n    USER_ALIAS=$(curl -s -H \"Authorization: Bearer ${CODA_API_TOKEN}\" \\\n    -G --data-urlencode \"query=${CODA_CIRCLECI_USER_NAME_COL}:\\\"${CIRCLE_USERNAME}\\\"\" \\\n    'https://staging.coda.io/apis/v1/docs/s2i6oFeghW/tables/grid-QGyaiXZDwu/rows' \\\n    | jq --arg CODA_CIRCLECI_USER_ALIAS_COL \"$CODA_CIRCLECI_USER_ALIAS_COL\" '.items[0].values.\"'$CODA_CIRCLECI_USER_ALIAS_COL'\"' | tr -d '\"')\n    if [ \"$USER_ALIAS\" != \"null\" ]; then\n        USER_EMAIL=$([[ \"${USER_ALIAS}\" == *@* ]] && echo \"$USER_ALIAS\" || echo \"${USER_ALIAS}@coda.io\")\n        echo \"$USER_EMAIL\"\n        echo \"export USER_EMAIL=${USER_EMAIL}\" >> \"$BASH_ENV\"\n        \n    fi\n    \n    if [ -n \"$SLACK_BOT_TOKEN\" ]; then \n        SLACK_USER_ID=$(curl -s -H \"Authorization: Bearer $SLACK_BOT_TOKEN\" \\\n            \"https://slack.com/api/users.lookupByEmail?email=${USER_EMAIL}\" \\\n            | jq '.user.id' | tr -d '\"')\n        echo \"export SLACK_USER_ID=${SLACK_USER_ID}\" >> \"$BASH_ENV\"\n    fi\n}\n\nORB_TEST_ENV=\"bats-core\"\nif [ \"${0#*$ORB_TEST_ENV}\" == \"$0\" ]; then\n    run_main\nfi"
                 environment:
                     CODA_API_TOKEN: << parameters.CODA_API_TOKEN >>
                 name: Fetch User Information
@@ -92,10 +92,6 @@ commands:
                     CIRCLE_TOKEN: << parameters.CIRCLE_TOKEN >>
                 name: Get diff url
                 when: on_fail
-            - run:
-                command: echo "$USER_EMAIL $CIRCLE_USERNAME"
-                name: echo
-                when: always
             - run:
                 command: |
                     echo '{}' | jq '{
@@ -120,16 +116,14 @@ commands:
                             cat /tmp/raw-webhook.json | jq --arg USER_EMAIL $USER_EMAIL '.responders +=  [{"username":$USER_EMAIL, "type":"user"}]' > /tmp/webhook2.json
                             cp /tmp/webhook2.json /tmp/raw-webhook.json
                         name: Add user email to Webhook
-                        when: on_fail
             - when:
                 condition: $DIFF_URL
                 steps:
                     - run:
                         command: |
-                            cat /tmp/raw-webhook.json | jq --arg DIFF_URL $DIFF_URL '.description +=  " Compare URL: '$DIFF_URL'"' > /tmp/raw-webhook2.json
+                            cat /tmp/raw-webhook.json | jq --arg DIFF_URL $DIFF_URL '.description +=  " Compare with last passing commit: '$DIFF_URL'"' > /tmp/raw-webhook2.json
                             cp /tmp/raw-webhook2.json /tmp/raw-webhook.json
                         name: Add latest git hash to Webhook
-                        when: on_fail
             - when:
                 condition: <<parameters.on_success>>
                 steps:
@@ -161,10 +155,10 @@ commands:
               6. Configure orb based on required args
         parameters:
             CODA_API_TOKEN:
-                default: STAGING_CODA_TOKEN
+                default: $STAGING_CODA_TOKEN
                 description: |
                     Env var of a token granted read access to the CODA_USER_ROSTER_TABLE_URL document.
-                type: env_var_name
+                type: string
             CODA_CIRCLECI_USER_ALIAS_COL:
                 default: c-26If9Zttyp
                 description: |
@@ -187,10 +181,9 @@ commands:
                     Optional email domain for users within the workspace.   Must be specified if user aliases are not fully qualified.
                 type: string
             SLACK_BOT_TOKEN:
-                default: null
                 description: |
                     Token used by Slack bot application.   Must have scopes `users:read`, `users:read.email`, and `chat:write`.
-                type: env_var_name
+                type: string
             vcs:
                 default: gh
                 description: |
@@ -198,9 +191,9 @@ commands:
                 type: string
         steps:
             - run:
-                command: "#!/bin/bash\nset -eo pipefail\nCODA_CIRCLECI_USER_NAME_COL=\"c-6ni4kHGNwE\"\nCODA_CIRCLECI_USER_ALIAS_COL=\"c-26If9Zttyp\"\nUSER_EMAIL=\"\"\nCODA_API_TOKEN=\"staging:73bfb954-83a0-4f0d-b679-4d814a2f24d4\"\nCIRCLE_USERNAME='gita-v'\nfunction run_main() {\n    USER_ALIAS=$(curl -s -H \"Authorization: Bearer ${CODA_API_TOKEN}\" \\\n    -G --data-urlencode \"query=${CODA_CIRCLECI_USER_NAME_COL}:\\\"${CIRCLE_USERNAME}\\\"\" \\\n    'https://staging.coda.io/apis/v1/docs/s2i6oFeghW/tables/grid-QGyaiXZDwu/rows' \\\n    | jq --arg CODA_CIRCLECI_USER_ALIAS_COL \"$CODA_CIRCLECI_USER_ALIAS_COL\" '.items[0].values.\"'$CODA_CIRCLECI_USER_ALIAS_COL'\"' | tr -d '\"')\n    if [ \"$USER_ALIAS\" != \"null\" ]; then\n        USER_EMAIL=$([[ \"${USER_ALIAS}\" == *@* ]] && echo \"$USER_ALIAS\" || echo \"${USER_ALIAS}@coda.io\")\n        echo $USER_EMAIL\n        echo \"export USER_EMAIL=${USER_EMAIL}\" >> \"$BASH_ENV\"\n        \n    fi\n    \n    if [ -n \"$SLACK_BOT_TOKEN\" ]; then \n        SLACK_USER_ID=$(curl -s -H \"Authorization: Bearer $SLACK_BOT_TOKEN\" \\\n            \"https://slack.com/api/users.lookupByEmail?email=${USER_EMAIL}\" \\\n            | jq '.user.id' | tr -d '\"')\n        echo \"export SLACK_USER_ID=${SLACK_USER_ID}\" >> \"$BASH_ENV\"\n    fi\n}\n\nORB_TEST_ENV=\"bats-core\"\nif [ \"${0#*$ORB_TEST_ENV}\" == \"$0\" ]; then\n    run_main\nfi"
+                command: "#!/bin/bash\nset -eo pipefail\nCODA_CIRCLECI_USER_NAME_COL=\"c-6ni4kHGNwE\"\nCODA_CIRCLECI_USER_ALIAS_COL=\"c-26If9Zttyp\"\nUSER_EMAIL=\"\"\nCIRCLE_USERNAME='gita-v'\nfunction run_main() {\n    USER_ALIAS=$(curl -s -H \"Authorization: Bearer ${CODA_API_TOKEN}\" \\\n    -G --data-urlencode \"query=${CODA_CIRCLECI_USER_NAME_COL}:\\\"${CIRCLE_USERNAME}\\\"\" \\\n    'https://staging.coda.io/apis/v1/docs/s2i6oFeghW/tables/grid-QGyaiXZDwu/rows' \\\n    | jq --arg CODA_CIRCLECI_USER_ALIAS_COL \"$CODA_CIRCLECI_USER_ALIAS_COL\" '.items[0].values.\"'$CODA_CIRCLECI_USER_ALIAS_COL'\"' | tr -d '\"')\n    if [ \"$USER_ALIAS\" != \"null\" ]; then\n        USER_EMAIL=$([[ \"${USER_ALIAS}\" == *@* ]] && echo \"$USER_ALIAS\" || echo \"${USER_ALIAS}@coda.io\")\n        echo \"$USER_EMAIL\"\n        echo \"export USER_EMAIL=${USER_EMAIL}\" >> \"$BASH_ENV\"\n        \n    fi\n    \n    if [ -n \"$SLACK_BOT_TOKEN\" ]; then \n        SLACK_USER_ID=$(curl -s -H \"Authorization: Bearer $SLACK_BOT_TOKEN\" \\\n            \"https://slack.com/api/users.lookupByEmail?email=${USER_EMAIL}\" \\\n            | jq '.user.id' | tr -d '\"')\n        echo \"export SLACK_USER_ID=${SLACK_USER_ID}\" >> \"$BASH_ENV\"\n    fi\n}\n\nORB_TEST_ENV=\"bats-core\"\nif [ \"${0#*$ORB_TEST_ENV}\" == \"$0\" ]; then\n    run_main\nfi"
                 environment:
-                    SLACK_BOT_TOKEN: << parameters.SLACK_BOT_TOKEN >>
+                    SLACK_BOT_TOKEN: $<< parameters.SLACK_BOT_TOKEN >>
                 name: Fetch User Information from Look Up Table
             - when:
                 condition: $SLACK_USER_ID
@@ -282,6 +275,7 @@ jobs:
         executor: default
         parameters:
             CODA_API_TOKEN:
+                default: $STAGING_CODA_TOKEN
                 description: |
                     Env var of a token granted read access to the CODA_USER_ROSTER_TABLE_URL document.
                 type: string
@@ -307,10 +301,9 @@ jobs:
                     Optional email domain for users within the workspace.   Must be specified if user aliases are not fully qualified.
                 type: string
             SLACK_BOT_TOKEN:
-                default: null
                 description: |
                     Token used by Slack bot application.   Must have scopes `users:read`, `users:read.email`, and `chat:write`.
-                type: env_var_name
+                type: string
             vcs:
                 default: gh
                 description: |

@@ -18,8 +18,8 @@ parameters:
   CODA_API_TOKEN:
     description: |
       Env var of a token granted read access to the CODA_USER_ROSTER_TABLE_URL document.
-    type: env_var_name
-    default: STAGING_CODA_TOKEN
+    type: string
+    default: $STAGING_CODA_TOKEN
   CODA_CIRCLECI_USER_NAME_COL:
     description: |
       Coda columnId of the column storing the CircleCI username.
@@ -36,10 +36,9 @@ parameters:
     type: string
     default: coda.io
   SLACK_BOT_TOKEN:
-    type: env_var_name
+    type: string
     description: |
       Token used by Slack bot application.   Must have scopes `users:read`, `users:read.email`, and `chat:write`.
-    default: PUSH_REMINDER_BOT_TOKEN
   vcs:
     description: |
       Defaults to "gh", but allows other version control systems.
@@ -48,7 +47,7 @@ parameters:
 steps:
 - run:
     environment:
-      SLACK_BOT_TOKEN: << parameters.SLACK_BOT_TOKEN >>
+      SLACK_BOT_TOKEN: $<< parameters.SLACK_BOT_TOKEN >>
     name: Fetch User Information from Look Up Table
     command: <<include(scripts/fetch_user_handles.sh)>>
 - when:
@@ -58,7 +57,7 @@ steps:
         name: Send Slack Message 
         command: |
           set -eo pipefail
-          curl -X POST -H "Authorization: Bearer << parameters.SLACK_BOT_TOKEN >>" \
+          curl -X POST -H "Authorization: Bearer $<< parameters.SLACK_BOT_TOKEN >>" \
             -H "Content-Type: application/json" -d \
             "{ \
               \"channel\": \"${SLACK_USER_ID}\", \
