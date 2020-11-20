@@ -7,7 +7,7 @@ setup() {
 
 @test '2: Check Coda Email Exists' {
     export CIRCLE_USERNAME="gita-v"
-    export CODA_API_TOKEN=$STAGING_CODA_API_TOKEN
+    export CODA_API_TOKEN=$STAGING_CODA_TOKEN
     export CODA_CIRCLECI_USER_ALIAS_COL="c-26If9Zttyp"
     export CODA_CIRCLECI_USER_NAME_COL="c-6ni4kHGNwE"
     export CODA_USER_ROSTER_TABLE_URL="https://staging.coda.io/apis/v1/docs/s2i6oFeghW/tables/grid-QGyaiXZDwu/rows"
@@ -18,7 +18,7 @@ setup() {
 
 @test '3: Check Coda Email DNE' {
     export CIRCLE_USERNAME="nonexistant_user"
-    export CODA_API_TOKEN=$STAGING_CODA_API_TOKEN
+    export CODA_API_TOKEN=$STAGING_CODA_TOKEN
     export CODA_CIRCLECI_USER_ALIAS_COL="c-26If9Zttyp"
     export CODA_CIRCLECI_USER_NAME_COL="c-6ni4kHGNwE"
     export CODA_USER_ROSTER_TABLE_URL="https://staging.coda.io/apis/v1/docs/s2i6oFeghW/tables/grid-QGyaiXZDwu/rows"
@@ -30,7 +30,7 @@ setup() {
 
 @test '4: Check Codas Slack Handle Exists' {
     export CIRCLE_USERNAME="gita-v"
-    export CODA_API_TOKEN=$STAGING_CODA_API_TOKEN
+    export CODA_API_TOKEN=$STAGING_CODA_TOKEN
     export CODA_CIRCLECI_USER_ALIAS_COL="c-26If9Zttyp"
     export CODA_CIRCLECI_USER_NAME_COL="c-6ni4kHGNwE"
     export CODA_USER_ROSTER_TABLE_URL="https://staging.coda.io/apis/v1/docs/s2i6oFeghW/tables/grid-QGyaiXZDwu/rows"
