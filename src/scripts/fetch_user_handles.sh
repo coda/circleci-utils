@@ -17,10 +17,12 @@ function run_main() {
         
     fi
     
-    if [ -n "$SLACK_BOT_TOKEN" ]; then 
-        SLACK_USER_ID=$(curl -s -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
+    if [ -n "$PUSH_REMINDER_BOT_TOKEN" ]; then 
+        echo "$USER_EMAIL"
+        SLACK_USER_ID=$(curl -s -H "Authorization: Bearer $PUSH_REMINDER_BOT_TOKEN" \
             "https://slack.com/api/users.lookupByEmail?email=${USER_EMAIL}" \
             | jq '.user.id' | tr -d '"')
+        echo "$SLACK_USER_ID"
         echo "export SLACK_USER_ID=${SLACK_USER_ID}" >> "$BASH_ENV"
     fi
 }
