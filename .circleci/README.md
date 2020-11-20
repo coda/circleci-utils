@@ -18,9 +18,9 @@ There are two workflows which automate the pack, test, and publishing process.
 
 **test-pack**
 
-This is the first of the two workflows run. This workflow is responsible for any testing or prepping prior to integration tests. This is where linting occurs, shellchecking, BATS tests, or anything else that can be be tested without the need for further credentials.
+This is the first of the two workflows run. This workflow is responsible for testing and prepping prior to integration tests. This is where shellchecking and BATS tests occur.
 
-This Workflow will be placed on _hold_ prior to publishing a new development version of the orb (based on this commit), as this step requires access to specific publishing credentials.
+This Workflow will be placed on _hold_ prior to publishing a new development version of the orb (based on this commit), as this step requires access to specific publishing credentials ( orb-publishing context: currently access set to All).
 
 This allows users to fork the orb repository and begin the pipeline, while the code-owners review that the code is safe to test in an environment where publishing keys will be present.
 
