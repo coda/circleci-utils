@@ -44,34 +44,35 @@ jobs:
       - image: cimg/base:stable
     steps:
       - utils/slack-notify-waiting-for-approval:
-          SLACK_BOT_TOKEN: PUSH_REMINDER_BOT_TOKEN
+          CODA_API_TOKEN: ${GITHUB_TO_SLACK_CODA_API_TOKEN}
+          SLACK_BOT_TOKEN: ${PUSH_REMINDER_BOT_TOKEN}
 workflows:
   # Prior to producing a development orb (which requires credentials) basic validation, linting, and even unit testing can be performed.
   # This workflow will run on every commit
   test-pack:
     unless: << pipeline.parameters.run-integration-tests >>
     jobs:
-      # - orb-tools/pack # Pack orb source
-      # - shellcheck/check:
-      #     dir: ./src/scripts
-      #     exclude: SC2148
-      # # optional: Run BATS tests against your scripts
-      # - bats/run:
-      #     path: ./src/tests
-      # # If you accept building open source forks, protect your secrects behind a restricted context.
-      # # A job containing restricted context (which holds your orb publishing credentials) may only be accessed by a user with proper permissions.
-      # # An open source user may begin a pipeline with a PR, and once the pipeline is approved by an authorized user at this point, the pipeline will continue with the proper context permissions.
-      # - hold-for-dev-publish:
-      #     type: approval
-      #     requires:
-      #       - orb-tools/pack
-      #       - bats/run
-      #       - shellcheck/check
+      - orb-tools/pack # Pack orb source
+      - shellcheck/check:
+          dir: ./src/scripts
+          exclude: SC2148
+      # optional: Run BATS tests against your scripts
+      - bats/run:
+          path: ./src/tests
+      # If you accept building open source forks, protect your secrects behind a restricted context.
+      # A job containing restricted context (which holds your orb publishing credentials) may only be accessed by a user with proper permissions.
+      # An open source user may begin a pipeline with a PR, and once the pipeline is approved by an authorized user at this point, the pipeline will continue with the proper context permissions.
+      - hold-for-dev-publish:
+          type: approval
+          requires:
+            - orb-tools/pack
+            - bats/run
+            - shellcheck/check
       # Publish development version(s) of the orb.
       - orb-tools/publish-dev:
           orb-name: coda/utils
           context: orb-publishing # A restricted context containing your private publishing credentials. Will only execute if approved by an authorized user.
-          # requires: [hold-for-dev-publish]
+          requires: [hold-for-dev-publish]
       # Trigger an integration workflow to test the
       # dev:${CIRCLE_SHA1:0:7} version of your orb
       - orb-tools/trigger-integration-tests-workflow:
