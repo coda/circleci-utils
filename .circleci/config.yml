@@ -1,7 +1,7 @@
 version: 2.1
 
 orbs:
-  utils: coda/utils@dev:gv-ci-alerts
+  utils: coda/utils@<<pipeline.parameters.dev-orb-version>>
   orb-tools: circleci/orb-tools@10.0
   bats: circleci/bats@1.0
   shellcheck: circleci/shellcheck@2.0
@@ -12,7 +12,7 @@ parameters:
   run-integration-tests:
     description: An internal flag to prevent integration test from running before a development version has been created.
     type: boolean
-    default: true
+    default: false
   dev-orb-version:
     description: >
       The development version of the orb to test.

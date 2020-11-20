@@ -3,10 +3,10 @@ description: |
   Depends on jq being present.
 parameters:
   CIRCLE_TOKEN:
-    default: CIRCLE_TOKEN
+    default: $CIRCLECI_TOKEN
     description: |
       Env var of a token granted read access to the CircleCI api
-    type: env_var_name
+    type: string
   vcs:
     description: |
       Defaults to "gh", but allows other version control systems.

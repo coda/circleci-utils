@@ -4,7 +4,7 @@ parameters:
     default: OPSGENIE_WEBHOOK
     description: Enter either your Full URL value that you copied in Opsgenie
       Integration Page
-    type: env_var_name
+    type: string
   on_failure:
     default: false
     description: Failure information of circleci build
@@ -14,15 +14,15 @@ parameters:
     description: Success information of circleci build
     type: boolean
   CODA_API_TOKEN:
-    default: STAGING_CODA_TOKEN
+    default: $STAGING_CODA_TOKEN
     description: |
       Env var of a token granted read access to the CODA_USER_ROSTER_TABLE_URL document.
-    type: env_var_name
+    type: string
   CIRCLE_TOKEN:
-    default: CIRCLE_TOKEN
+    default: $CIRCLECI_TOKEN
     description: |
       Env var of a token granted read access to the CircleCI api
-    type: env_var_name
+    type: string
 steps:
 - run:
     name: Fetch User Information
