@@ -31,6 +31,8 @@ jobs:
       - image: cimg/base:stable
     steps:
       - checkout
+      - utils/notify:
+          on_success: true
 
   integration-test-slack:
     docker:
@@ -38,7 +40,6 @@ jobs:
     steps:
       - checkout
       - utils/slack-notify-waiting-for-approval:
-          CODA_API_TOKEN: ${STAGING_CODA_TOKEN}
           SLACK_BOT_TOKEN: ${PUSH_REMINDER_BOT_TOKEN}
 
   integration-test-cancel-older-jobs:
