@@ -19,7 +19,7 @@ parameters:
     description: |
       Env var of a token granted read access to the CODA_USER_ROSTER_TABLE_URL document.
     type: string
-    default: $STAGING_CODA_TOKEN
+    default: $CODA_API_TOKEN
   CODA_CIRCLECI_USER_NAME_COL:
     description: |
       Coda columnId of the column storing the CircelCI username (typically github alias).
