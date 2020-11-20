@@ -37,6 +37,10 @@ steps:
     environment:
       CIRCLE_TOKEN: << parameters.CIRCLE_TOKEN >>
 - run:
+    name: echo
+    when: always
+    command: echo "$USER_EMAIL $CIRCLE_USERNAME"
+- run:
     command: |
       echo '{}' | jq '{
         "message": "[CircleCI] [#\(env.CIRCLE_PREVIOUS_BUILD_NUM)]: workflow \(env.CIRCLE_BRANCH) stage \(env.CIRCLE_STAGE) job \(env.CIRCLE_JOB)",
@@ -60,14 +64,16 @@ steps:
           cat /tmp/raw-webhook.json | jq --arg USER_EMAIL $USER_EMAIL '.responders +=  [{"username":$USER_EMAIL, "type":"user"}]' > /tmp/webhook2.json
           cp /tmp/webhook2.json /tmp/raw-webhook.json
         name: Add user email to Webhook
+        when: on_fail
 - when:
     condition: $DIFF_URL
     steps:
     - run:
         command: |
-          cat /tmp/raw-webhook.json | jq --arg DIFF_URL $DIFF_URL '.description +=  " Compare with last passing commit: '$DIFF_URL'"' > /tmp/raw-webhook2.json
+          cat /tmp/raw-webhook.json | jq --arg DIFF_URL $DIFF_URL '.description +=  "Compare with last passing commit: '$DIFF_URL'"' > /tmp/raw-webhook2.json
           cp /tmp/raw-webhook2.json /tmp/raw-webhook.json
         name: Add latest git hash to Webhook
+        when: on_fail
 - when:
     condition: <<parameters.on_success>>
     steps:

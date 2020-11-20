@@ -33,15 +33,20 @@ commands:
 
 jobs:
   # Define one or more jobs which will utilize your orb's commands and parameters to validate your changes.
-  integration-test-1:
+  integration-test-notify:
     docker:
       - image: cimg/base:stable
     steps:
       - checkout
-      - fail-job
       - utils/notify:
-          on_failure: true
-
+          on_success: true
+  integration-test-slack:
+      docker:
+      - image: cimg/base:stable
+      steps:
+        - utils/slack-notify-waiting-for-approval:
+          CODA_API_TOKEN: ${GITHUB_TO_SLACK_CODA_API_TOKEN}
+          SLACK_BOT_TOKEN: ${PUSH_REMINDER_BOT_TOKEN}
 workflows:
   # Prior to producing a development orb (which requires credentials) basic validation, linting, and even unit testing can be performed.
   # This workflow will run on every commit
@@ -85,7 +90,8 @@ workflows:
     when: << pipeline.parameters.run-integration-tests >>
     jobs:
       # Run any integration tests defined within the `jobs` key.
-      - integration-test-1
+      - integration-test-notify
+      - integration-test-slack
       # Publish a semver version of the orb. relies on
       # the commit subject containing the text "[semver:patch|minor|major|skip]"
       # as that will determine whether a patch, minor or major
