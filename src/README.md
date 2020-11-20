@@ -31,7 +31,7 @@ cancel_older_approvals.sh
 - CIRCLE_TOKEN: CircleCI token to access that projects API
 fetch_user_handles.sh:
 - CODA_API_TOKEN: Coda API token to access staging document
-- SLACK_BOT_TOKEN: Slack token to post to Coda Slack Workspace
+- PUSH_REMINDER_BOT_TOKEN: Slack token to post to Coda Slack Workspace
 get_lkg_hash.sh:
 - CIRCLE_TOKEN: CircleCI token to access that project's API
 
