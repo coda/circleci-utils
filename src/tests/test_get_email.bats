@@ -13,5 +13,5 @@ setup() {
 @test '3: Check Coda Email DNE' {
     export CIRCLE_USERNAME="nonexistant_user"
     result=$(run_main)
-    [[ "$result" == "" ]]
+    [[ "$result" != "coda@io" ]]
 }
