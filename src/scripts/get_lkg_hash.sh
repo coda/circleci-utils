@@ -4,17 +4,18 @@ CIRCLE_FETCH_MAX_PAGES=100
 response=""
 function get_recent_builds() {
     offset=$(($1*CIRCLE_FETCH_PAGE_SIZE))
+    url="https://circleci.com/api/v1/project/kr-project/experimental/tree/gv-ci-alerts?circle-token=2792acd76580898bb91df9a550692be18c0f559f&limit=100&offset=0&filter=successful"
 
-    url="https://circleci.com/api/v1/project/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/tree/${CIRCLE_BRANCH}?circle-token=${CIRCLE_TOKEN}&limit=100&offset=${offset}&filter=successful"
+    # url="https://circleci.com/api/v1/project/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/tree/${CIRCLE_BRANCH}?circle-token=${CIRCLE_TOKEN}&limit=100&offset=${offset}&filter=successful"
 
-    response=$(curl "$url" | jq '.')
+    response=$(curl -s "$url" | jq '.')
     response_code=$(curl -s -o /dev/null -w "%{http_code}" "$url")
 }
 
 function run_main() {
     latest_build_num=0
     latest_git_hash=""
-    job_name=$CIRCLE_JOB
+    job_name="coda-user"
     page=0
     DIFF_URL=""
 
@@ -27,19 +28,20 @@ function run_main() {
             echo "Error: CircleCI page not found"
             exit 0
         fi
-        for build in $(echo "$response" | jq -c '.[]')
+        for build in $(echo "'$response'" | jq -c '.[]')
         do
-            if [[ $(echo "$build" | jq -r '.outcome') != "success" ]]; then
-                continue
-            fi
-            if [[ $(echo "$build" | grep 'workflows') == "" ]]; then 
-                continue 
-            fi 
-            if (( $(echo "$build" | jq  -r '.build_num') > latest_build_num ))\
-            && [[ $(echo "$build" | jq -r '.workflows.job_name') == "$job_name" ]]; then
-                latest_build_num=$(echo "$build" | jq -r '.build_num') 
-                latest_git_hash=$(echo "$build" | jq -r '.vcs_revision')
-            fi
+            # if [[ $(echo "$build" | jq -r '.outcome') != "success" ]]; then
+            #     continue
+            # fi
+            # if [[ $(echo "$build" | grep 'workflows') == "" ]]; then 
+            #     continue 
+            # fi 
+            echo $(echo "'$build'" | jq  -c -r '.')
+            # echo $(echo "$build" | jq  -r '.build_num')
+            # if (( $(echo "$build" | jq  -r '.build_num') > latest_build_num )) && [[ $(echo "$build" | jq -r '.workflows.job_name') == "$job_name" ]]; then
+            #     latest_build_num=$(echo "$build" | jq -r '.build_num') 
+            #     latest_git_hash=$(echo "$build" | jq -r '.vcs_revision')
+            # fi
         done
         if [ -z "$latest_git_hash" ]; then
             # if latest_git_hash is empty then increase page and keep looking
