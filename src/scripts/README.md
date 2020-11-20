@@ -10,35 +10,20 @@ Utilizing the `circleci orb pack` CLI command, it is possible to import files (s
 
 ```yaml
 
-# commands/greet.yml
+# commands/notify.yml
 description: >
   This command echos "Hello World" using file inclusion.
 parameters:
-  to:
-    type: string
-    default: "World"
-    description: "Hello to who?"
+  CODA_API_TOKEN:
+    type: env_var
+    default: STAGING_CODA_TOKEN
+    description: "Token to fetch document data"
 steps:
   - run:
       environment:
-        PARAM_TO: <<parameters.to>
-      name: Hello <<parameters.to>
+        CODA_API_TOKEN: <<parameters.CODA_API_TOKEN>
+      name: Fetch the necessary user information
       command: <<include(scripts/get_lkg_hash.sh)>>
 
 ```
 
-```shell
-# scripts/greet.sh
-Greet() {
-    echo Hello ${PARAM_TO}
-}
-
-# Will not run if sourced from another script. This is done so this script may be tested.
-# View src/tests for more information.
-if [[ "$_" == "$0" ]]; then
-    Greet
-fi
-```
-
-TO DO :
-CIRCLE_TOKEN is circleci environment variable in UI to process scripts/get_lkg_hash.sh

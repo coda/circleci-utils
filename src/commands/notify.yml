@@ -1,13 +1,5 @@
 description: Send build results to Opsgenie API, with detailed information
 parameters:
-  email:
-    default: ""
-    description: Email of Coda to be added
-    type: string
-  diff_url:
-    default: ""
-    description: Last known good commit
-    type: string
   endpoint:
     default: OPSGENIE_WEBHOOK
     description: Enter either your Full URL value that you copied in Opsgenie
@@ -22,34 +14,45 @@ parameters:
     description: Success information of circleci build
     type: boolean
   CODA_API_TOKEN:
-    default: CODA_API_TOKEN
+    default: STAGING_CODA_TOKEN
     description: |
       Env var of a token granted read access to the CODA_USER_ROSTER_TABLE_URL document.
     type: env_var_name
+  CIRCLE_TOKEN:
+    default: CIRCLE_TOKEN
+    description: |
+      Env var of a token granted read access to the CircleCI api
+    type: env_var_name
 steps:
 - run:
-    name: Get User Email
+    name: Fetch User Information
     when: always
     command: <<include(scripts/fetch_user_handles.sh)>>
+    environment:
+      CODA_API_TOKEN: << parameters.CODA_API_TOKEN >>
 - run:
     name: Get diff url
     when: on_fail
     command: <<include(scripts/get_lkg_hash.sh)>>
+    environment:
+      CIRCLE_TOKEN: << parameters.CIRCLE_TOKEN >>
 - run:
     name: echo
+    when: always
     command: echo "$USER_EMAIL $CIRCLE_USERNAME"
 - run:
     command: |
       echo '{}' | jq '{
-        "message": "[TESTING] [#\(env.CIRCLE_PREVIOUS_BUILD_NUM)]: workflow \(env.CIRCLE_BRANCH) stage \(env.CIRCLE_STAGE) job \(env.CIRCLE_JOB)",
-        "alias": "\(env.CIRCLE_PROJECT_REPONAME)/\(env.CIRCLE_BRANCH)#\(env.CIRCLE_JOB)",
+        "message": "[CircleCI] [#\(env.CIRCLE_PREVIOUS_BUILD_NUM)]: workflow \(env.CIRCLE_BRANCH) stage \(env.CIRCLE_STAGE) job \(env.CIRCLE_JOB)",
+        "alias": "\(env.CIRCLE_PROJECT_REPONAME)/\(env.CIRCLE_BRANCH)#\(env.CIRCLE_JOB) ",
         "description":"See \(env.CIRCLE_BUILD_URL) for more details. ",
         "outcome": "unknown",
         "username": env.CIRCLE_USERNAME,
         "details": {
           "build_number":env.CIRCLE_PREVIOUS_BUILD_NUM,
           "build_url": env.CIRCLE_BUILD_URL
-          }
+          },
+        "tags": ["TestingAlerts"],
       }' > /tmp/raw-webhook.json
     name: Bundle build info into webhook payload
     when: always
@@ -67,7 +70,7 @@ steps:
     steps:
     - run:
         command: |
-          cat /tmp/raw-webhook.json | jq --arg DIFF_URL $DIFF_URL '.message +=  " Compare URL: '$DIFF_URL'"' > /tmp/raw-webhook2.json
+          cat /tmp/raw-webhook.json | jq --arg DIFF_URL $DIFF_URL '.description +=  " Compare URL: '$DIFF_URL'"' > /tmp/raw-webhook2.json
           cp /tmp/raw-webhook2.json /tmp/raw-webhook.json
         name: Add latest git hash to Webhook
         when: on_fail
