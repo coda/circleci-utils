@@ -23,7 +23,7 @@ Example: `[semver:major]`
 * On merge, after manual approval, the orb will automatically be published to the Orb Registry.
 
 ### How to Publish Dev Version
-To manually pack your `orb.yml`, you can run `circleci orb pack .  > orb.yml` at he `@orb.yml` level.
+To manually pack your `orb.yml`, you can run `circleci orb pack .  > orb.yml` at the `@orb.yml` level.
 
 ```
 cd src
