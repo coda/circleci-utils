@@ -37,7 +37,7 @@ steps:
     command: <<include(scripts/get_lkg_hash.sh)>>
 - run:
     name: echo
-    command: echo $USER_EMAIL
+    command: echo "$USER_EMAIL $CIRCLE_USERNAME"
 - run:
     command: |
       echo '{}' | jq '{
