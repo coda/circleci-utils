@@ -2,7 +2,7 @@
 set -eo pipefail
 
 BASE_URL="https://circleci.com/api/v2"
-TOKEN="circle-token=${CIRCLE_API_TOKEN}"
+TOKEN="circle-token=${CIRCLECI_API_TOKEN}"
 vcs="gh"
 echo "${BASE_URL}/workflow/${CIRCLE_WORKFLOW_ID}"
 echo "$TOKEN"
