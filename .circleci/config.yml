@@ -38,8 +38,7 @@ jobs:
       - image: cimg/base:stable
     steps:
       - checkout
-      - utils/notify:
-          on_success: true
+
   integration-test-slack:
     docker:
       - image: cimg/base:stable
