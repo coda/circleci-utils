@@ -31,6 +31,8 @@ jobs:
       - image: cimg/base:stable
     steps:
       - checkout
+      - utils/notify:
+          on_success: true
 
   integration-test-slack:
     docker:
@@ -91,8 +93,9 @@ workflows:
     when: << pipeline.parameters.run-integration-tests >>
     jobs:
       # Run any integration tests defined within the `jobs` key.
-      - integration-test-notify
-      - integration-test-slack
+      # To Do add them back
+      # - integration-test-notify
+      # - integration-test-slack
       - wait-for-approval:
           type: approval
       - utils/cancel-older-awaiting-approvals

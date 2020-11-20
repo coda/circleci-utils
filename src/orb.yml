@@ -52,7 +52,6 @@ commands:
                         fi
                     done
                 environment:
-                    CIRCLE_TOKEN: <<parameters.CIRCLE_TOKEN>>
                     vcs: <<parameters.vcs>>
                 name: Cancel older pipelines waiting on manual approval.
     notify:

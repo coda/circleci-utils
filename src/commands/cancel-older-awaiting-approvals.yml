@@ -17,5 +17,4 @@ steps:
       name: Cancel older pipelines waiting on manual approval.
       command: <<include(scripts/cancel_older_approvals.sh)>>
       environment:
-        CIRCLE_TOKEN: <<parameters.CIRCLE_TOKEN>>
         vcs: <<parameters.vcs>>
