@@ -4,7 +4,10 @@ set -eo pipefail
 BASE_URL="https://circleci.com/api/v2"
 TOKEN="circle-token=${CIRCLE_TOKEN}"
 vcs="gh"
+echo "${BASE_URL}/workflow/${CIRCLE_WORKFLOW_ID}"
+echo "$TOKEN"
 CURRENT_WORKFLOW=$(curl -s -H "Accept: application/json" "${BASE_URL}/workflow/${CIRCLE_WORKFLOW_ID}?${TOKEN}")
+echo "$CURRENT_WORKFLOW"
 CURRENT_WORKFLOW_TIMESTAMP=$(echo "$CURRENT_WORKFLOW" | jq -r ".created_at")
 echo "Current workflow start time: ${CURRENT_WORKFLOW_TIMESTAMP}"
 
