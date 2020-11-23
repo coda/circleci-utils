@@ -5,7 +5,6 @@ setup() {
 }
 
 @test '1: Get a Diff URL' {
-    # Mock environment variables or functions by exporting them (after the script has been sourced)
     result=$(run_main)
     [[ "$result" == *"https://github.com/kr-project"* ]]
 }
