@@ -1,0 +1,21 @@
+usage:
+  version: 2.1
+  orbs:
+    utils: coda/utils@<version>
+  jobs:
+    my-job:
+      docker:
+        - image: cimg/base:stable
+      steps:
+        - checkout
+        - utils/notify:
+            on_failure: true
+  workflows:
+    use-my-orb:
+      jobs:
+        - my-job
+        - utils/cancel-older-awaiting-approvals:
+            token: ${CIRCLECI_API_TOKEN}
+        - utils/slack-notify-waiting-for-approval:
+            CODA_API_TOKEN: ${STAGING_CODA_TOKEN}
+            SLACK_BOT_TOKEN: ${PUSH_REMINDER_BOT_TOKEN}

@@ -1,0 +1,19 @@
+description: |
+  Cancel all older pipelines waiting on manual approval.
+  Depends on jq being present.
+parameters:
+  circle_token:
+    default: ${CIRCLECI_TOKEN}
+    description: |
+      Env var of a token granted read access to the CircleCI api
+    type: string
+  vcs:
+    description: |
+      Defaults to "gh", but allows other version control systems.
+    type: string
+    default: gh
+executor: default
+steps:
+  - cancel-older-awaiting-approvals:
+      circle_token: << parameters.circle_token >>
+      vcs: << parameters.vcs >>
