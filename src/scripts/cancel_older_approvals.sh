@@ -2,7 +2,7 @@
 set -eo pipefail
 
 BASE_URL="https://circleci.com/api/v2"
-TOKEN="circle-token=${CIRCLECI_TOKEN}"
+TOKEN="circle-token=${CIRCLECI_API_TOKEN}"
 vcs="gh"
 CURRENT_WORKFLOW=$(curl -s -H "Accept: application/json" "${BASE_URL}/workflow/${CIRCLE_WORKFLOW_ID}?${TOKEN}")
 echo  "${BASE_URL}/workflow/${CIRCLE_WORKFLOW_ID}?${TOKEN}"
