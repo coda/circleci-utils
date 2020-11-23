@@ -88,7 +88,7 @@ workflows:
           fail-if-semver-not-indicated: true
           publish-version-tag: false
           requires:
-            - integration-test-notify
-            - integration-test-slack
+            # - integration-test-notify
+            # - integration-test-slack
             - utils/cancel-older-awaiting-approvals
 
