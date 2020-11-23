@@ -6,7 +6,6 @@ TOKEN="circle-token=${CIRCLECI_TOKEN}"
 vcs="gh"
 CURRENT_WORKFLOW=$(curl -s -H "Accept: application/json" "${BASE_URL}/workflow/${CIRCLE_WORKFLOW_ID}?${TOKEN}")
 echo "$CURRENT_WORKFLOW"
-
 CURRENT_WORKFLOW_TIMESTAMP=$(echo "$CURRENT_WORKFLOW" | jq -r ".created_at")
 echo "Current workflow start time: ${CURRENT_WORKFLOW_TIMESTAMP}"
 PROJECT_SLUG="project/${vcs}%2F${CIRCLE_PROJECT_USERNAME}%2F${CIRCLE_PROJECT_REPONAME}"

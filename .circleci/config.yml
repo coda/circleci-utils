@@ -12,7 +12,7 @@ parameters:
   run-integration-tests:
     description: An internal flag to prevent integration test from running before a development version has been created.
     type: boolean
-    default: true
+    default: false
   dev-orb-version:
     description: >
       The development version of the orb to test.
@@ -46,41 +46,41 @@ jobs:
     steps:
       - checkout
       - utils/cancel-older-awaiting-approvals:
-          circle_token: ${CIRCLECI_API_TOKEN}
+          circle_token: CIRCLECI_TOKEN
 
 workflows:
   test-pack:
     unless: << pipeline.parameters.run-integration-tests >>
     jobs:
-      # - orb-tools/pack 
-      # - shellcheck/check:
-      #     dir: ./src/scripts
-      # - bats/run:
-      #     path: ./src/tests
-      # - hold-for-dev-publish:
-      #     type: approval
-      #     requires:
-      #       - orb-tools/pack
-      #       - bats/run
-      #       - shellcheck/check
+      - orb-tools/pack 
+      - shellcheck/check:
+          dir: ./src/scripts
+      - bats/run:
+          path: ./src/tests
+      - hold-for-dev-publish:
+          type: approval
+          requires:
+            - orb-tools/pack
+            - bats/run
+            - shellcheck/check
       # Publish development version of the orb.
-      # - orb-tools/publish-dev:
-      #     orb-name: coda/utils
-      #     context: orb-publishing 
-      #     requires: [hold-for-dev-publish]
+      - orb-tools/publish-dev:
+          orb-name: coda/utils
+          context: orb-publishing 
+          requires: [hold-for-dev-publish]
       # dev:${CIRCLE_SHA1:0:7} version of your orb
       - orb-tools/trigger-integration-tests-workflow:
           name: trigger-integration-dev
           context: orb-publishing
-          # requires:
-          #   - orb-tools/publish-dev
+          requires:
+            - orb-tools/publish-dev
 
   integration-test_deploy:
     when: << pipeline.parameters.run-integration-tests >>
     jobs:
-      - integration-test-notify
-      - integration-test-slack
-      - integration-test-cancel-older-jobs
+      # - integration-test-notify
+      # - integration-test-slack
+      - utils/cancel-older-awaiting-approvals
       - orb-tools/dev-promote-prod-from-commit-subject:
           orb-name: coda/utils
           context: orb-publishing
@@ -90,5 +90,5 @@ workflows:
           requires:
             - integration-test-notify
             - integration-test-slack
-            - integration-test-cancel-older-jobs
+            - utils/cancel-older-awaiting-approvals
 
