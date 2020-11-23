@@ -77,8 +77,8 @@ workflows:
   integration-test_deploy:
     when: << pipeline.parameters.run-integration-tests >>
     jobs:
-      # - integration-test-notify
-      # - integration-test-slack
+      - integration-test-notify
+      - integration-test-slack
       - utils/cancel-older-awaiting-approvals
       - orb-tools/dev-promote-prod-from-commit-subject:
           orb-name: coda/utils
@@ -87,7 +87,7 @@ workflows:
           fail-if-semver-not-indicated: true
           publish-version-tag: false
           requires:
-            # - integration-test-notify
-            # - integration-test-slack
+            - integration-test-notify
+            - integration-test-slack
             - utils/cancel-older-awaiting-approvals
 
