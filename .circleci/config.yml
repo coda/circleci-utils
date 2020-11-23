@@ -46,7 +46,7 @@ jobs:
     steps:
       - checkout
       - utils/cancel-older-awaiting-approvals:
-          circle_token: CIRCLECI_TOKEN
+          circle_token: ${CIRCLECI_TOKEN}
 
 workflows:
   test-pack:
