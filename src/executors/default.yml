@@ -1,0 +1,6 @@
+description: >
+  Default executor
+  
+resource_class: small
+docker:
+  - image: circleci/buildpack-deps:buster-curl
