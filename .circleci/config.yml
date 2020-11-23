@@ -45,7 +45,8 @@ jobs:
       - image: cimg/base:stable
     steps:
       - checkout
-      - utils/cancel-older-awaiting-approvals
+      - utils/cancel-older-awaiting-approvals:
+          circle_token: ${CIRCLECI_API_TOKEN}
 
 workflows:
   test-pack:
@@ -79,7 +80,7 @@ workflows:
     jobs:
       - integration-test-notify
       - integration-test-slack
-      - utils/cancel-older-awaiting-approvals
+      - integration-test-cancel-older-jobs
       - orb-tools/dev-promote-prod-from-commit-subject:
           orb-name: coda/utils
           context: orb-publishing
@@ -89,5 +90,5 @@ workflows:
           requires:
             - integration-test-notify
             - integration-test-slack
-            - utils/cancel-older-awaiting-approvals
+            - integration-test-cancel-older-jobs
 
