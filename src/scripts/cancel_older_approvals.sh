@@ -21,7 +21,7 @@ for PIPELINE_ID in $PIPELINE_IDS; do
     echo "Workflow data: ${WORKFLOW_ID}, ${WORKFLOW_STATUS}, ${WORKFLOW_CREATION_TIMESTAMP}"
 
     if [[ $WORKFLOW_CREATION_TIMESTAMP < $CURRENT_WORKFLOW_TIMESTAMP && "$WORKFLOW_STATUS" == "on_hold" ]]; then
-        echo "Canceling older workflow waiting for manual approval: ${WORKFLOW_ID}"
-        curl -s -X POST -H "Accept: application/json" "${BASE_URL}/workflow/${WORKFLOW_ID}/cancel?${TOKEN}" || true
+    echo "Canceling older workflow waiting for manual approval: ${WORKFLOW_ID}"
+    curl -s -X POST -H "Accept: application/json" "${BASE_URL}/workflow/${WORKFLOW_ID}/cancel?${TOKEN}"
     fi
 done
