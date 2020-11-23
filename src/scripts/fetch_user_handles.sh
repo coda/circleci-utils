@@ -10,7 +10,7 @@ function run_main() {
     if [ "$USER_ALIAS" != "null" ]; then
         USER_EMAIL=$([[ "${USER_ALIAS}" == *@* ]] && echo "$USER_ALIAS" || echo "${USER_ALIAS}@${EMAIL_DOMAIN}")
         echo "$USER_EMAIL"
-        # echo "export USER_EMAIL=${USER_EMAIL}" >> "$BASH_ENV"
+        echo "export USER_EMAIL=${USER_EMAIL}" >> "$BASH_ENV"
         
     fi
     
