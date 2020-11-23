@@ -38,7 +38,7 @@ jobs:
     steps:
       - checkout
       - utils/slack-notify-waiting-for-approval:
-          SLACK_BOT_TOKEN: ${PUSH_REMINDER_BOT_TOKEN}
+          slack_bot_token: ${PUSH_REMINDER_BOT_TOKEN}
 
   integration-test-cancel-older-jobs:
     docker:
