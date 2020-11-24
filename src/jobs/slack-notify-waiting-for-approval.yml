@@ -9,7 +9,7 @@ description: |
     5. Setup a Slack Bot account with scopes `users:read`, `users:read.email`, and `chat:write`.
     6. Configure orb based on required args
 parameters:
-  CODA_USER_ROSTER_TABLE_URL:
+  coda_user_roster_table_url:
     description: |
       Fully qualified API URL to a table containing CIRCLECI_USERNAME to email aliases.    Must be of the form
       https://coda.io/apis/v1/docs/<DOCID>/tables/<TABLEID>/rows.
@@ -17,20 +17,20 @@ parameters:
     default: https://staging.coda.io/apis/v1/docs/s2i6oFeghW/tables/grid-QGyaiXZDwu/rows
   coda_api_token:
     description: |
-      Env var of a token granted read access to the CODA_USER_ROSTER_TABLE_URL document.
+      Env var of a token granted read access to the coda_user_roster_table_url document.
     type: string
     default: $CODA_API_TOKEN
-  CODA_CIRCLECI_USER_NAME_COL:
+  coda_circleci_user_name_col:
     description: |
       Coda columnId of the column storing the CircelCI username (typically github alias).
     type: string
     default: c-6ni4kHGNwE
-  CODA_CIRCLECI_USER_ALIAS_COL:
+  coda_circleci_user_alias_col:
     description: |
-      Coda columnId of the column storing the user alias (if using EMAIL_DOMAIN), or fully qualified email.
+      Coda columnId of the column storing the user alias (if using email_domain), or fully qualified email.
     type: string
     default: c-26If9Zttyp
-  EMAIL_DOMAIN:
+  email_domain:
     description: |
       Optional email domain for users within the workspace.   Must be specified if user aliases are not fully qualified.
     type: string
@@ -45,8 +45,8 @@ executor: default
 steps:
   - slack-notify-waiting-for-approval:
       coda_api_token: << parameters.coda_api_token >>
-      CODA_CIRCLECI_USER_ALIAS_COL: << parameters.CODA_CIRCLECI_USER_ALIAS_COL >>
+      CODA_CIRCLECI_USER_ALIAS_COL: << parameters.coda_circleci_user_alias_col >>
       CODA_CIRCLECI_USER_NAME_COL: << parameters.CODA_CIRCLECI_USER_NAME_COL >>
-      CODA_USER_ROSTER_TABLE_URL: << parameters.CODA_USER_ROSTER_TABLE_URL >>
-      EMAIL_DOMAIN: << parameters.EMAIL_DOMAIN >>
+      CODA_USER_ROSTER_TABLE_URL: << parameters.coda_user_roster_table_url >>
+      EMAIL_DOMAIN: << parameters.email_domain >>
       slack_bot_token: << parameters.slack_bot_token >>
