@@ -30,7 +30,7 @@ parameters:
     description: Success information of circleci build
     type: boolean
   coda_api_token:
-    default: ${CODA_API_TOKEN}
+    default: CODA_API_TOKEN
     description: |
       Env var of a token granted read access to the CODA_USER_ROSTER_TABLE_URL document.
     type: string
@@ -40,27 +40,30 @@ parameters:
     type: string
     default: coda.io
   circle_token:
-    default: ${CIRCLECI_TOKEN}
+    default: CIRCLECI_TOKEN
     description: |
       Env var of a token granted read access to the CircleCI api
     type: string
 steps:
 - run:
+    name: Set variables
+    command: |
+      echo "export CODA_API_TOKEN=<<parameters.coda_api_token>>" >> "$BASH_ENV"
+      echo "export CIRCLECI_TOKEN=<<parameters.circle_token>>" >> "$BASH_ENV"
+      echo "export EMAIL_DOMAIN=<<parameters.EMAIL_DOMAIN>>" >> "$BASH_ENV"
+      echo "export CODA_CIRCLECI_USER_ALIAS_COL=<<parameters.CODA_CIRCLECI_USER_ALIAS_COL>>" >> "$BASH_ENV"
+      echo "export CODA_CIRCLECI_USER_NAME_COL=<<parameters.CODA_CIRCLECI_USER_NAME_COL>>" >> "$BASH_ENV"
+      echo "export CODA_USER_ROSTER_TABLE_URL=<<parameters.CODA_USER_ROSTER_TABLE_URL>>" >> "$BASH_ENV"
+- run:
     name: Fetch User Information
     when: always
     command: <<include(scripts/fetch_user_handles.sh)>>
-    environment:
-      CODA_API_TOKEN: << parameters.coda_api_token >>
-      CODA_CIRCLECI_USER_ALIAS_COL: <<parameters.CODA_CIRCLECI_USER_ALIAS_COL>>
-      CODA_CIRCLECI_USER_NAME_COL: <<parameters.CODA_CIRCLECI_USER_NAME_COL>>
-      CODA_USER_ROSTER_TABLE_URL: <<parameters.CODA_USER_ROSTER_TABLE_URL>>
-      EMAIL_DOMAIN: <<parameters.EMAIL_DOMAIN>>
-- run:
-    name: Get diff url
-    when: on_fail
-    command: <<include(scripts/get_lkg_hash.sh)>>
-    environment:
-      CIRCLE_TOKEN: << parameters.circle_token >>
+- when:
+    condition: <<parameters.on_failure>>
+    steps:
+    - run:
+        name: Get diff url
+        command: <<include(scripts/get_lkg_hash.sh)>>
 - run:
     command: |
       echo '{}' | jq '{

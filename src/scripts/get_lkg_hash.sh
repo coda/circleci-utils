@@ -49,6 +49,8 @@ function run_main() {
         DIFF_URL="https://github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/compare/${latest_git_hash}...${CIRCLE_SHA1}"
         echo "$DIFF_URL"
         echo "export DIFF_URL=$DIFF_URL" >> "$BASH_ENV"
+    else
+        echo "export DIFF_URL=false" >> "$BASH_ENV"
     fi
 }
 

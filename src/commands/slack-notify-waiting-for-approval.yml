@@ -40,21 +40,19 @@ parameters:
     description: |
       Token used by Slack bot application.   Must have scopes `users:read`, `users:read.email`, and `chat:write`.
     default: ${PUSH_REMINDER_BOT_TOKEN}
-  vcs:
-    description: |
-      Defaults to "gh", but allows other version control systems.
-    type: string
-    default: gh
 steps:
+- run:
+    name: Set variables
+    command: |
+      echo "export CODA_API_TOKEN=<<parameters.coda_api_token>>" >> "$BASH_ENV"
+      echo "export EMAIL_DOMAIN=<<parameters.EMAIL_DOMAIN>>" >> "$BASH_ENV"
+      echo "export CODA_CIRCLECI_USER_ALIAS_COL=<<parameters.CODA_CIRCLECI_USER_ALIAS_COL>>" >> "$BASH_ENV"
+      echo "export CODA_CIRCLECI_USER_NAME_COL=<<parameters.CODA_CIRCLECI_USER_NAME_COL>>" >> "$BASH_ENV"
+      echo "export CODA_USER_ROSTER_TABLE_URL=<<parameters.CODA_USER_ROSTER_TABLE_URL>>" >> "$BASH_ENV"
+      echo "export SLACK_BOT_TOKEN=<<parameters.slack_bot_token>>" >> "$BASH_ENV"
 - run:
     name: Fetch User Information from Look Up Table
     command: <<include(scripts/fetch_user_handles.sh)>>
-    environment:
-      SLACK_BOT_TOKEN: <<parameters.slack_bot_token>>
-      CODA_API_TOKEN: <<parameters.coda_api_token>>
-      CODA_CIRCLECI_USER_ALIAS_COL: <<parameters.CODA_CIRCLECI_USER_ALIAS_COL>>
-      CODA_CIRCLECI_USER_NAME_COL: <<parameters.CODA_CIRCLECI_USER_NAME_COL>>
-      CODA_USER_ROSTER_TABLE_URL: <<parameters.CODA_USER_ROSTER_TABLE_URL>>
 - when:
     condition: $SLACK_USER_ID
     steps:
