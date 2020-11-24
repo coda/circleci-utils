@@ -1,6 +1,7 @@
 #!/bin/bash
 set -eo pipefail
 USER_EMAIL=""
+SLACK_USER_ID=""
 function run_main() {
     USER_ALIAS=$(curl -s -H "Authorization: Bearer ${CODA_API_TOKEN}" \
     -G --data-urlencode "query=${CODA_CIRCLECI_USER_NAME_COL}:\"${CIRCLE_USERNAME}\"" \
@@ -10,22 +11,17 @@ function run_main() {
     if [ "$USER_ALIAS" != "null" ]; then
         USER_EMAIL=$([[ "${USER_ALIAS}" == *@* ]] && echo "$USER_ALIAS" || echo "${USER_ALIAS}@${EMAIL_DOMAIN}")
         echo "$USER_EMAIL"
-        echo "export USER_EMAIL=${USER_EMAIL}" >> "$BASH_ENV"
-    else
-        echo "export USER_EMAIL=false" >> "$BASH_ENV"
     fi
     
     if [ -n "$SLACK_BOT_TOKEN" ]; then 
-        echo "$USER_EMAIL"
         SLACK_USER_ID=$(curl -s -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
             "https://slack.com/api/users.lookupByEmail?email=${USER_EMAIL}" \
             | jq '.user.id' | tr -d '"')
         echo "$SLACK_USER_ID"
-        echo "export SLACK_USER_ID=${SLACK_USER_ID}" >> "$BASH_ENV"
-    else
-        echo "export SLACK_USER_ID=false" >> "$BASH_ENV"
-
     fi
+    echo "export USER_EMAIL=${USER_EMAIL}" >> "$BASH_ENV"
+    echo "export SLACK_USER_ID=${SLACK_USER_ID}" >> "$BASH_ENV"
+
 }
 
 # Will not run if sourced for bats.

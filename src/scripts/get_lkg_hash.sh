@@ -48,10 +48,9 @@ function run_main() {
     if [ -n "$latest_git_hash" ]; then
         DIFF_URL="https://github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/compare/${latest_git_hash}...${CIRCLE_SHA1}"
         echo "$DIFF_URL"
-        echo "export DIFF_URL=$DIFF_URL" >> "$BASH_ENV"
-    else
-        echo "export DIFF_URL=false" >> "$BASH_ENV"
     fi
+    echo "export DIFF_URL=$DIFF_URL" >> "$BASH_ENV"
+
 }
 
 # Will not run if sourced for bats-core tests.

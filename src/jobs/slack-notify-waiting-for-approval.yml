@@ -45,8 +45,8 @@ executor: default
 steps:
   - slack-notify-waiting-for-approval:
       coda_api_token: << parameters.coda_api_token >>
-      CODA_CIRCLECI_USER_ALIAS_COL: << parameters.coda_circleci_user_alias_col >>
-      CODA_CIRCLECI_USER_NAME_COL: << parameters.CODA_CIRCLECI_USER_NAME_COL >>
-      CODA_USER_ROSTER_TABLE_URL: << parameters.coda_user_roster_table_url >>
-      EMAIL_DOMAIN: << parameters.email_domain >>
+      coda_circleci_user_alias_col: << parameters.coda_circleci_user_alias_col >>
+      coda_circleci_user_name_col: << parameters.coda_circleci_user_name_col >>
+      coda_user_roster_table_url: << parameters.coda_user_roster_table_url >>
+      email_domain: << parameters.email_domain >>
       slack_bot_token: << parameters.slack_bot_token >>

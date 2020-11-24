@@ -47,12 +47,13 @@ parameters:
 steps:
 - run:
     name: Set variables
+    when: always
     command: |
       echo "export CODA_API_TOKEN=<<parameters.coda_api_token>>" >> "$BASH_ENV"
       echo "export CIRCLECI_TOKEN=<<parameters.circle_token>>" >> "$BASH_ENV"
       echo "export EMAIL_DOMAIN=<<parameters.email_domain>>" >> "$BASH_ENV"
       echo "export CODA_CIRCLECI_USER_ALIAS_COL=<<parameters.coda_circleci_user_alias_col>>" >> "$BASH_ENV"
-      echo "export CODA_CIRCLECI_USER_NAME_COL=<<parameters.CODA_CIRCLECI_USER_NAME_COL>>" >> "$BASH_ENV"
+      echo "export CODA_CIRCLECI_USER_NAME_COL=<<parameters.coda_circleci_user_name_col>>" >> "$BASH_ENV"
       echo "export CODA_USER_ROSTER_TABLE_URL=<<parameters.coda_user_roster_table_url>>" >> "$BASH_ENV"
 - run:
     name: Fetch User Information
@@ -64,6 +65,7 @@ steps:
     - run:
         name: Get diff url
         command: <<include(scripts/get_lkg_hash.sh)>>
+        when: on_fail
 - run:
     command: |
       echo '{}' | jq '{
@@ -80,21 +82,29 @@ steps:
     name: Bundle build info into webhook payload
     when: always
 - when:
-    condition: $USER_EMAIL
+    condition:
+      and:
+        - not:
+            equal: [$USER_EMAIL, ""]
     steps:
     - run:
         command: |
           cat /tmp/raw-webhook.json | jq --arg USER_EMAIL $USER_EMAIL '.details.username +=  $USER_EMAIL ' > /tmp/webhook_temp.json
           mv /tmp/webhook_temp.json /tmp/raw-webhook.json
         name: Add user email to Webhook
+        when: on_fail
 - when:
-    condition: $DIFF_URL
+    condition:
+      and:
+        - not:
+            equal: [$DIFF_URL, ""]
     steps:
     - run:
         command: |
           cat /tmp/raw-webhook.json | jq --arg DIFF_URL $DIFF_URL '.description +=  " Compare with last passing commit: '$DIFF_URL'"' > /tmp/webhook_temp.json
           mv /tmp/webhook_temp.json /tmp/raw-webhook.json
         name: Add latest git hash to Webhook
+        when: on_fail
 - when:
     condition: <<parameters.on_success>>
     steps:
