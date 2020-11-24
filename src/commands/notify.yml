@@ -98,7 +98,7 @@ steps:
         mv /tmp/webhook_temp.json /tmp/raw-webhook.json
       fi
     name: Add latest git hash to Webhook
-    when: on_success
+    when: on_fail
 - when:
     condition: <<parameters.on_success>>
     steps:
