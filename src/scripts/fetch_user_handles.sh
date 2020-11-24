@@ -1,23 +1,18 @@
 #!/bin/bash
 set -eo pipefail
 USER_EMAIL=""
-echo "$TESTING"
 function run_main() {
     USER_ALIAS=$(curl -s -H "Authorization: Bearer ${CODA_API_TOKEN}" \
     -G --data-urlencode "query=${CODA_CIRCLECI_USER_NAME_COL}:\"${CIRCLE_USERNAME}\"" \
     "${CODA_USER_ROSTER_TABLE_URL}" \
     | jq --arg CODA_CIRCLECI_USER_ALIAS_COL "$CODA_CIRCLECI_USER_ALIAS_COL" '.items[0].values."'"$CODA_CIRCLECI_USER_ALIAS_COL"'"' | tr -d '"')
-    echo "Authorization: Bearer ${CODA_API_TOKEN}"
-    echo "query=${CODA_CIRCLECI_USER_NAME_COL}:\"${CIRCLE_USERNAME}\""
-    echo "${CODA_USER_ROSTER_TABLE_URL}"
-    echo "$CODA_API_TOKEN"
-    echo "$CODA_USER_ROSTER_TABLE_URL"
-    echo "$USER_ALIAS"
+
     if [ "$USER_ALIAS" != "null" ]; then
         USER_EMAIL=$([[ "${USER_ALIAS}" == *@* ]] && echo "$USER_ALIAS" || echo "${USER_ALIAS}@${EMAIL_DOMAIN}")
         echo "$USER_EMAIL"
         echo "export USER_EMAIL=${USER_EMAIL}" >> "$BASH_ENV"
-        
+    else
+        echo "export USER_EMAIL=false" >> "$BASH_ENV"
     fi
     
     if [ -n "$SLACK_BOT_TOKEN" ]; then 
@@ -27,6 +22,9 @@ function run_main() {
             | jq '.user.id' | tr -d '"')
         echo "$SLACK_USER_ID"
         echo "export SLACK_USER_ID=${SLACK_USER_ID}" >> "$BASH_ENV"
+    else
+        echo "export SLACK_USER_ID=false" >> "$BASH_ENV"
+
     fi
 }
 
