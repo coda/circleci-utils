@@ -1,19 +1,19 @@
 description: Send build results to Opsgenie API, with detailed information
 parameters:
-  CODA_USER_ROSTER_TABLE_URL:
+  coda_user_roster_table_url:
     description: |
       Fully qualified API URL to a table containing CIRCLECI_USERNAMEs to email aliases.    Must be of the form
       https://coda.io/apis/v1/docs/<DOCID>/tables/<TABLEID>/rows.
     type: string
     default: https://staging.coda.io/apis/v1/docs/s2i6oFeghW/tables/grid-QGyaiXZDwu/rows
-  CODA_CIRCLECI_USER_NAME_COL:
+  coda_circleci_user_name_col:
     description: |
-      Coda columnId of the column storing the CircleCI username in the CODA_USER_ROSTER_TABLE_URL document.
+      Coda columnId of the column storing the CircleCI username in the coda_user_roster_table_url document.
     type: string
     default: c-6ni4kHGNwE
-  CODA_CIRCLECI_USER_ALIAS_COL:
+  coda_circleci_user_alias_col:
     description: |
-      Coda columnId of the column storing the user alias (when using EMAIL_DOMAIN), or fully qualified email.
+      Coda columnId of the column storing the user alias (when using email_domain), or fully qualified email.
     type: string
     default: c-26If9Zttyp
   endpoint:
@@ -30,37 +30,42 @@ parameters:
     description: Success information of circleci build
     type: boolean
   coda_api_token:
-    default: ${CODA_API_TOKEN}
+    default: $CODA_API_TOKEN
     description: |
-      Env var of a token granted read access to the CODA_USER_ROSTER_TABLE_URL document.
+      Env var of a token granted read access to the coda_user_roster_table_url document.
     type: string
-  EMAIL_DOMAIN:
+  email_domain:
     description: |
       Optional email domain for users within the workspace.   Must be specified if user aliases are not fully qualified.
     type: string
     default: coda.io
   circle_token:
-    default: ${CIRCLECI_TOKEN}
+    default: $CIRCLECI_TOKEN
     description: |
       Env var of a token granted read access to the CircleCI api
     type: string
 steps:
 - run:
+    name: Set variables
+    when: always
+    command: |
+      echo "export CODA_API_TOKEN=<<parameters.coda_api_token>>" >> "$BASH_ENV"
+      echo "export CIRCLECI_TOKEN=<<parameters.circle_token>>" >> "$BASH_ENV"
+      echo "export EMAIL_DOMAIN=<<parameters.email_domain>>" >> "$BASH_ENV"
+      echo "export CODA_CIRCLECI_USER_ALIAS_COL=<<parameters.coda_circleci_user_alias_col>>" >> "$BASH_ENV"
+      echo "export CODA_CIRCLECI_USER_NAME_COL=<<parameters.coda_circleci_user_name_col>>" >> "$BASH_ENV"
+      echo "export CODA_USER_ROSTER_TABLE_URL=<<parameters.coda_user_roster_table_url>>" >> "$BASH_ENV"
+- run:
     name: Fetch User Information
     when: always
     command: <<include(scripts/fetch_user_handles.sh)>>
-    environment:
-      CODA_API_TOKEN: << parameters.coda_api_token >>
-      CODA_CIRCLECI_USER_ALIAS_COL: <<parameters.CODA_CIRCLECI_USER_ALIAS_COL>>
-      CODA_CIRCLECI_USER_NAME_COL: <<parameters.CODA_CIRCLECI_USER_NAME_COL>>
-      CODA_USER_ROSTER_TABLE_URL: <<parameters.CODA_USER_ROSTER_TABLE_URL>>
-      EMAIL_DOMAIN: <<parameters.EMAIL_DOMAIN>>
-- run:
-    name: Get diff url
-    when: on_fail
-    command: <<include(scripts/get_lkg_hash.sh)>>
-    environment:
-      CIRCLE_TOKEN: << parameters.circle_token >>
+- when:
+    condition: <<parameters.on_failure>>
+    steps:
+    - run:
+        name: Get diff url
+        command: <<include(scripts/get_lkg_hash.sh)>>
+        when: on_fail
 - run:
     command: |
       echo '{}' | jq '{
@@ -76,22 +81,24 @@ steps:
       }' > /tmp/raw-webhook.json
     name: Bundle build info into webhook payload
     when: always
-- when:
-    condition: $USER_EMAIL
-    steps:
-    - run:
-        command: |
-          cat /tmp/raw-webhook.json | jq --arg USER_EMAIL $USER_EMAIL '.details.username +=  $USER_EMAIL ' > /tmp/webhook_temp.json
-          mv /tmp/webhook_temp.json /tmp/raw-webhook.json
-        name: Add user email to Webhook
-- when:
-    condition: $DIFF_URL
-    steps:
-    - run:
-        command: |
-          cat /tmp/raw-webhook.json | jq --arg DIFF_URL $DIFF_URL '.description +=  " Compare with last passing commit: '$DIFF_URL'"' > /tmp/webhook_temp.json
-          mv /tmp/webhook_temp.json /tmp/raw-webhook.json
-        name: Add latest git hash to Webhook
+  
+- run:
+  # Can not evaluate bash variables on ci conditional; must set inside command
+    command: |
+      if [ -n "${USER_EMAIL}" ]; then
+        cat /tmp/raw-webhook.json | jq --arg USER_EMAIL $USER_EMAIL '.details.username +=  $USER_EMAIL ' > /tmp/webhook_temp.json
+        mv /tmp/webhook_temp.json /tmp/raw-webhook.json
+      fi
+    name: Add user email to Webhook
+    when: on_fail
+- run:
+    command: |
+      if [ -n "${DIFF_URL}" ]; then
+        cat /tmp/raw-webhook.json | jq --arg DIFF_URL $DIFF_URL '.description +=  " Compare with last passing commit: '$DIFF_URL'"' > /tmp/webhook_temp.json
+        mv /tmp/webhook_temp.json /tmp/raw-webhook.json
+      fi
+    name: Add latest git hash to Webhook
+    when: on_fail
 - when:
     condition: <<parameters.on_success>>
     steps:
