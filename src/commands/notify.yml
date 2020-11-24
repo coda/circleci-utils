@@ -81,30 +81,24 @@ steps:
       }' > /tmp/raw-webhook.json
     name: Bundle build info into webhook payload
     when: always
-- when:
-    condition:
-      and:
-        - not:
-            equal: [$USER_EMAIL, ""]
-    steps:
-    - run:
-        command: |
-          cat /tmp/raw-webhook.json | jq --arg USER_EMAIL $USER_EMAIL '.details.username +=  $USER_EMAIL ' > /tmp/webhook_temp.json
-          mv /tmp/webhook_temp.json /tmp/raw-webhook.json
-        name: Add user email to Webhook
-        when: on_fail
-- when:
-    condition:
-      and:
-        - not:
-            equal: [$DIFF_URL, ""]
-    steps:
-    - run:
-        command: |
-          cat /tmp/raw-webhook.json | jq --arg DIFF_URL $DIFF_URL '.description +=  " Compare with last passing commit: '$DIFF_URL'"' > /tmp/webhook_temp.json
-          mv /tmp/webhook_temp.json /tmp/raw-webhook.json
-        name: Add latest git hash to Webhook
-        when: on_fail
+  
+- run:
+  # Can not evaluate bash variables on ci conditional; must set inside command
+    command: |
+      if [[ $USER_EMAIL != ""]]; then
+        cat /tmp/raw-webhook.json | jq --arg USER_EMAIL $USER_EMAIL '.details.username +=  $USER_EMAIL ' > /tmp/webhook_temp.json
+        mv /tmp/webhook_temp.json /tmp/raw-webhook.json
+      fi
+    name: Add user email to Webhook
+    when: on_fail
+- run:
+    command: |
+      if [[ $DIFF_URL != "" ]]; then
+        cat /tmp/raw-webhook.json | jq --arg DIFF_URL $DIFF_URL '.description +=  " Compare with last passing commit: '$DIFF_URL'"' > /tmp/webhook_temp.json
+        mv /tmp/webhook_temp.json /tmp/raw-webhook.json
+      fi
+    name: Add latest git hash to Webhook
+    when: on_fail
 - when:
     condition: <<parameters.on_success>>
     steps:
