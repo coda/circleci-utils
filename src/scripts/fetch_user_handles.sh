@@ -1,6 +1,7 @@
 #!/bin/bash
 set -eo pipefail
 USER_EMAIL=""
+SLACK_USER_ID=""
 function run_main() {
     # fetch all user information from coda doc
     TABLE_INFO=$(curl -s -H "Authorization: Bearer ${CODA_API_TOKEN}" \
