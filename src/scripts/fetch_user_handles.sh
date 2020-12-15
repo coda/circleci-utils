@@ -28,7 +28,6 @@ function run_main() {
         echo "export SLACK_USER_ID=${SLACK_USER_ID}" >> "$BASH_ENV"
     fi
 }
-
 # Will not run if sourced for bats.
 ORB_TEST_ENV="bats-core"
 if [ "${0#*$ORB_TEST_ENV}" == "$0" ]; then
