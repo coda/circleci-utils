@@ -104,7 +104,7 @@ steps:
     steps:
     - run:
         command: |
-          cat /tmp/raw-webhook.json | jq '.payload.outcome="success"' > /tmp/webhook.json
+          cat /tmp/raw-webhook.json | jq '.details.outcome="success"'  > /tmp/webhook.json
           curl -X POST -H"Content-Type:application/json" -H "Authorization: GenieKey ${OPS_GENIE_API_KEY}" -d @/tmp/webhook.json https://api.opsgenie.com/v2/alerts
         name: Notify $<<parameters.endpoint>> with Success Webhook
         when: on_success
@@ -113,7 +113,7 @@ steps:
     steps:
     - run:
         command: |
-          cat /tmp/raw-webhook.json | jq '.payload.outcome="failed"'  > /tmp/webhook.json
+          cat /tmp/raw-webhook.json | jq '.details.outcome="failed"'  > /tmp/webhook.json
           curl -X POST -H"Content-Type:application/json" -H "Authorization: GenieKey ${OPS_GENIE_API_KEY}" -d @/tmp/webhook.json https://api.opsgenie.com/v2/alerts
         name: Notify $<<parameters.endpoint>> with Failure Webhook
         when: on_fail
