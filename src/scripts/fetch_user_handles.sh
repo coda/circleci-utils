@@ -16,7 +16,6 @@ function run_main() {
     if [ "$USER_ALIAS" != "null" ]; then
         USER_EMAIL=$([[ "${USER_ALIAS}" == *@* ]] && echo "$USER_ALIAS" || echo "${USER_ALIAS}@${EMAIL_DOMAIN}")
         echo "$USER_EMAIL"
-        echo "export USER_EMAIL=${USER_EMAIL}" >> "$BASH_ENV"
     fi
 
     if [ -n "$SLACK_BOT_TOKEN" ]; then
@@ -25,8 +24,9 @@ function run_main() {
             "https://slack.com/api/users.lookupByEmail?email=${USER_EMAIL}" \
             | jq '.user.id' | tr -d '"')
         echo "$SLACK_USER_ID"
-        echo "export SLACK_USER_ID=${SLACK_USER_ID}" >> "$BASH_ENV"
     fi
+    echo "export USER_EMAIL=${USER_EMAIL}" >> "$BASH_ENV"
+    echo "export SLACK_USER_ID=${SLACK_USER_ID}" >> "$BASH_ENV"
 }
 # Will not run if sourced for bats.
 ORB_TEST_ENV="bats-core"
