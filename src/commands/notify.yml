@@ -81,12 +81,12 @@ steps:
       }' > /tmp/raw-webhook.json
     name: Bundle build info into webhook payload
     when: always
-  
+
 - run:
   # Can not evaluate bash variables on ci conditional; must set inside command
     command: |
       if [ -n "${USER_EMAIL}" ]; then
-        cat /tmp/raw-webhook.json | jq --arg USER_EMAIL $USER_EMAIL '.details.username +=  $USER_EMAIL ' > /tmp/webhook_temp.json
+        cat /tmp/raw-webhook.json | jq --arg USER_EMAIL $USER_EMAIL '.responders +=  $USER_EMAIL ' > /tmp/webhook_temp.json
         mv /tmp/webhook_temp.json /tmp/raw-webhook.json
       fi
     name: Add user email to Webhook
