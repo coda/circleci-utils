@@ -83,7 +83,6 @@ steps:
         "details": {
           "build_number":env.CIRCLE_PREVIOUS_BUILD_NUM,
           "build_url": env.CIRCLE_BUILD_URL,
-          "testing": "true"
           }
       }' > /tmp/raw-webhook.json
     name: Bundle build info into webhook payload
@@ -97,7 +96,6 @@ steps:
         mv /tmp/webhook_temp.json /tmp/raw-webhook.json
       fi
     name: Add user email to Webhook
-    # when: on_fail
 - run:
     command: |
       if [ -n "${DIFF_URL}" ]; then

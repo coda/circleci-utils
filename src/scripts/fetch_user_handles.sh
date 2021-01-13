@@ -2,7 +2,8 @@
 set -eo pipefail
 USER_EMAIL=""
 SLACK_USER_ID=""
-
+# TO DO; change w/ github migration
+GITHUB_API="https://api.github.com/repos/kr-project"
 function run_main() {
     # fetch all user information from coda doc based on users CircleCI username
     TABLE_INFO=$(curl -s -H "Authorization: Bearer ${CODA_API_TOKEN}" \
@@ -18,7 +19,7 @@ function run_main() {
     if [ "$USER_EMAIL" == "null" ]; then
         # get author of the PR using last commit
         GITHUB_COMMIT_INFO=$(curl -i -s -H "Authorization: token ${GITHUB_TOKEN}" \
-        "https://api.github.com/repos/kr-project/${CIRCLE_PR_REPONAME}/git/commits/${CIRCLE_SHA1}")
+        "${GITHUB_API}/${CIRCLE_PR_REPONAME}/git/commits/${CIRCLE_SHA1}")
         AUTHOR=$(echo "$GITHUB_COMMIT_INFO" | tr '\r\n' ' '  | jq '.author.name')
 
         # look up email of Codan using Author name from github
