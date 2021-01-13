@@ -24,7 +24,7 @@ function run_main() {
 
         # look up email of Codan using Author name from github
         TABLE_INFO=$(curl -s -H "Authorization: Bearer ${CODA_API_TOKEN}" \
-          -G --data-urlencode "query=${CODA_USER_EMAIL_COL}:\"${AUTHOR}\"" \
+          -G --data-urlencode "query=${CODA_NAME_COL}:\"${AUTHOR}\"" \
           "${CODA_USER_ROSTER_TABLE_URL}")
         USER_EMAIL=$(echo "$TABLE_INFO" | \
         jq --arg CODA_USER_EMAIL_COL "$CODA_USER_EMAIL_COL" \

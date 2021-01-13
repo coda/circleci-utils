@@ -25,6 +25,11 @@ parameters:
       Coda columnId of the column storing the CircelCI username (typically github alias).
     type: string
     default: c-6ni4kHGNwE
+  coda_name_col:
+    description: |
+      Coda columnId of the column storing the full name in the coda_user_roster_table_url document.
+    type: string
+    default: c-RJw2-9igCT
   coda_user_email_col:
     description: |
       Coda columnId of the column storing the Coda email in the coda_user_roster_table_url document.
@@ -53,6 +58,7 @@ steps:
       coda_circleci_user_alias_col: <<parameters.coda_circleci_user_alias_col>>
       coda_circleci_user_name_col: <<parameters.coda_circleci_user_name_col>>
       coda_user_email_col: <<parameters.coda_user_email_col>>
+      coda_name_col: <<parameters.coda_name_col>>
       coda_user_roster_table_url: <<parameters.coda_user_roster_table_url>>
       email_domain: <<parameters.email_domain>>
       slack_bot_token: <<parameters.slack_bot_token>>
