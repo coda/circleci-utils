@@ -32,7 +32,7 @@ function run_main() {
             USER_EMAIL=""
         fi
     fi
-    echo $USER_EMAIL
+    echo "$USER_EMAIL"
     if [ -n "$SLACK_BOT_TOKEN" ]; then
         SLACK_USER_ID=$(curl -s -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
             "https://slack.com/api/users.lookupByEmail?email=${USER_EMAIL}" \
