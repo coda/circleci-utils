@@ -2,20 +2,35 @@
 set -eo pipefail
 USER_EMAIL=""
 SLACK_USER_ID=""
+
 function run_main() {
-    # fetch all user information from coda doc
+    # fetch all user information from coda doc based on users CircleCI username
     TABLE_INFO=$(curl -s -H "Authorization: Bearer ${CODA_API_TOKEN}" \
       -G --data-urlencode "query=${CODA_CIRCLECI_USER_NAME_COL}:\"${CIRCLE_USERNAME}\"" \
       "${CODA_USER_ROSTER_TABLE_URL}")
-    # parse username from coda table
-    USER_ALIAS=$(echo "$TABLE_INFO" | \
-      jq --arg CODA_CIRCLECI_USER_ALIAS_COL "$CODA_CIRCLECI_USER_ALIAS_COL" \
-      '.items[0].values."'"$CODA_CIRCLECI_USER_ALIAS_COL"'"' | \
+    # parse email from coda table
+    USER_EMAIL=$(echo "$TABLE_INFO" | \
+      jq --arg CODA_CIRCLECI_USER_ALIAS_COL "$CODA_USER_EMAIL_COL" \
+      '.items[0].values."'"$CODA_USER_EMAIL_COL"'"' | \
       tr -d '"')
 
-    if [ "$USER_ALIAS" != "null" ]; then
-        USER_EMAIL=$([[ "${USER_ALIAS}" == *@* ]] && echo "$USER_ALIAS" || echo "${USER_ALIAS}@${EMAIL_DOMAIN}")
-        echo "$USER_EMAIL"
+    # if CircleCI username returned no email (ex; bot) get author of last git commit
+    if [ "$USER_EMAIL" == "null" ]; then
+        # get author of the PR using last commit
+        GITHUB_COMMIT_INFO=$(curl -i -s -H "Authorization: token ${GITHUB_TOKEN}" \
+        "https://api.github.com/repos/kr-project/${CIRCLE_PR_REPONAME}/git/commits/${CIRCLE_SHA1}")
+        AUTHOR=$(echo "$GITHUB_COMMIT_INFO" | tr '\r\n' ' '  | jq '.author.name')
+        
+        TABLE_INFO=$(curl -s -H "Authorization: Bearer ${CODA_API_TOKEN}" \
+          -G --data-urlencode "query=${CODA_USER_EMAIL_COL}:\"${AUTHOR}\"" \
+          "${CODA_USER_ROSTER_TABLE_URL}")
+        USER_EMAIL=$(echo $TABLE_INFO | \
+        jq --arg CODA_USER_EMAIL_COL "$CODA_USER_EMAIL_COL" \
+        '.items[0].values."'"$CODA_USER_EMAIL_COL"'' | \
+        tr -d '"')
+        if [ "$USER_EMAIL" == "null" ]; then
+            USER_EMAIL=""
+        fi
     fi
 
     if [ -n "$SLACK_BOT_TOKEN" ]; then
