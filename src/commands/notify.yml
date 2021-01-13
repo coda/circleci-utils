@@ -14,6 +14,7 @@ parameters:
   coda_user_email_col:
     description: |
       Coda columnId of the column storing the Coda email in the coda_user_roster_table_url document.
+    type: string
     default: c-JXKd1-s5HB
   coda_circleci_user_alias_col:
     description: |

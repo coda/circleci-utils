@@ -10,6 +10,8 @@ setup() {
     export CODA_API_TOKEN=$CODA_API_TOKEN
     export CODA_CIRCLECI_USER_ALIAS_COL="c-26If9Zttyp"
     export CODA_CIRCLECI_USER_NAME_COL="c-6ni4kHGNwE"
+    export CODA_USER_EMAIL_COL="c-JXKd1-s5HB"
+    export GITHUB_TOKEN=$GITHUB_TOKEN
     export CODA_USER_ROSTER_TABLE_URL="https://staging.coda.io/apis/v1/docs/s2i6oFeghW/tables/grid-QGyaiXZDwu/rows"
     export EMAIL_DOMAIN="coda.io"
     result=$(run_main)
@@ -21,6 +23,10 @@ setup() {
     export CODA_API_TOKEN=$CODA_API_TOKEN
     export CODA_CIRCLECI_USER_ALIAS_COL="c-26If9Zttyp"
     export CODA_CIRCLECI_USER_NAME_COL="c-6ni4kHGNwE"
+    export CODA_USER_EMAIL_COL="c-JXKd1-s5HB"
+    export GITHUB_TOKEN=$GITHUB_TOKEN
+    export CIRCLE_PR_REPONAME=$CIRCLE_PR_REPONAME
+    export CIRCLE_SHA1=$CIRCLE_SHA1
     export CODA_USER_ROSTER_TABLE_URL="https://staging.coda.io/apis/v1/docs/s2i6oFeghW/tables/grid-QGyaiXZDwu/rows"
     export EMAIL_DOMAIN="coda.io"
     result=$(run_main)
@@ -33,10 +39,12 @@ setup() {
     export CODA_API_TOKEN=$CODA_API_TOKEN
     export CODA_CIRCLECI_USER_ALIAS_COL="c-26If9Zttyp"
     export CODA_CIRCLECI_USER_NAME_COL="c-6ni4kHGNwE"
+    export CODA_USER_EMAIL_COL="c-JXKd1-s5HB"
+    export GITHUB_TOKEN=$GITHUB_TOKEN
     export CODA_USER_ROSTER_TABLE_URL="https://staging.coda.io/apis/v1/docs/s2i6oFeghW/tables/grid-QGyaiXZDwu/rows"
     export EMAIL_DOMAIN="coda.io"
     export SLACK_BOT_TOKEN=$PUSH_REMINDER_BOT_TOKEN
     result=$(run_main)
     [[ "$result" == *"U01DJE1DABE"* ]]
-    
+
 }

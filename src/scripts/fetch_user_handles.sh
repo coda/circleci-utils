@@ -20,11 +20,11 @@ function run_main() {
         GITHUB_COMMIT_INFO=$(curl -i -s -H "Authorization: token ${GITHUB_TOKEN}" \
         "https://api.github.com/repos/kr-project/${CIRCLE_PR_REPONAME}/git/commits/${CIRCLE_SHA1}")
         AUTHOR=$(echo "$GITHUB_COMMIT_INFO" | tr '\r\n' ' '  | jq '.author.name')
-        
+
         TABLE_INFO=$(curl -s -H "Authorization: Bearer ${CODA_API_TOKEN}" \
           -G --data-urlencode "query=${CODA_USER_EMAIL_COL}:\"${AUTHOR}\"" \
           "${CODA_USER_ROSTER_TABLE_URL}")
-        USER_EMAIL=$(echo $TABLE_INFO | \
+        USER_EMAIL=$(echo "$TABLE_INFO" | \
         jq --arg CODA_USER_EMAIL_COL "$CODA_USER_EMAIL_COL" \
         '.items[0].values."'"$CODA_USER_EMAIL_COL"'' | \
         tr -d '"')
