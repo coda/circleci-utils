@@ -29,23 +29,21 @@ function run_main() {
         jq --arg CODA_USER_EMAIL_COL "$CODA_USER_EMAIL_COL" \
         '.items[0].values."'"$CODA_USER_EMAIL_COL"'' | \
         tr -d '"')
-
         # potentially null if dependabot
         if [ "$USER_EMAIL" == "null" ]; then
             USER_EMAIL=""
         fi
-        # need to echo result for bats test to capture
-        echo "$USER_EMAIL"
     fi
 
     if [ -n "$SLACK_BOT_TOKEN" ]; then
         SLACK_USER_ID=$(curl -s -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
             "https://slack.com/api/users.lookupByEmail?email=${USER_EMAIL}" \
             | jq '.user.id' | tr -d '"')
-
-        # need to echo result for bats test to capture
-        echo "$SLACK_USER_ID"
     fi
+    # need to echo result for bats test to capture
+    echo "$USER_EMAIL"
+    echo "$SLACK_USER_ID"
+    # need to export for rest of steps to pick it up
     echo "export USER_EMAIL=${USER_EMAIL}" >> "$BASH_ENV"
     echo "export SLACK_USER_ID=${SLACK_USER_ID}" >> "$BASH_ENV"
 }

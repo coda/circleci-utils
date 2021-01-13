@@ -31,6 +31,10 @@ circleci orb pack .  > orb.yml
 circleci orb publish orb.yml coda/utils@dev:<your_branch_name>
 ```
 
+## Testing
+Using [bats](https://github.com/sstephenson/bats#installing-bats-from-source) to test bash scripts under src/tests.
+Individually testing for each command is done in `config.yml`.
+
 ## Used in Following Repos:
 - infra
 - headless-chrome
