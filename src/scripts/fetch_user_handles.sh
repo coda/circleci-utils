@@ -45,10 +45,10 @@ function run_main() {
           -G --data-urlencode "query=${CODA_GITHUB_COL}:\"${LOOKUP_USER}\"" \
           "${CODA_USER_ROSTER_TABLE_URL}")
 
-        # ------fix here
+        # look up the email from that Codan
         USER_EMAIL=$(echo "$TABLE_INFO" | \
         jq --arg CODA_USER_EMAIL_COL "$CODA_USER_EMAIL_COL" \
-        '.items[0].values."'$CODA_USER_EMAIL_COL'"' | \
+        '.items[0].values."'"$CODA_USER_EMAIL_COL"'"' | \
         tr -d '"')
         # potentially null if dependabot
         if [ "$USER_EMAIL" == "null" ]; then
