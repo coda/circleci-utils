@@ -17,14 +17,31 @@ function run_main() {
 
     # if CircleCI username returned no email (ex; bot) get author of last git commit
     if [ "$USER_EMAIL" == "null" ]; then
-        # get author of the PR using last commit
-        GITHUB_COMMIT_INFO=$(curl -i -s -H "Authorization: token ${GITHUB_TOKEN}" \
-        "${GITHUB_API}/${CIRCLE_PR_REPONAME}/git/commits/${CIRCLE_SHA1}")
-        AUTHOR=$(echo "$GITHUB_COMMIT_INFO" | tr '\r\n' ' '  | jq '.author.name')
+
+        #get pull requests from pr
+        GITHUB_PRS_FROM_COMMIT=$(curl "${GITHUB_API}/commits/${CIRCLE_SHA1}/pulls" \
+          --header "Accept: application/vnd.github.groot-preview+json" \
+          --header "Authorization: token ${GITHUB_TOKEN}")
+        # get first pr number from list pull requests
+        GITHUB_PR_NUMBER=$(echo "$GITHUB_PRS_FROM_COMMIT" | tr '\r\n' ' ' | jq '.[0].number')
+        # get associated information from that pr
+        GITHUB_GET_PR=$(curl "${GITHUB_API}/pulls/${GITHUB_PR_NUMBER}" \
+        --header "Authorization: token ${GITHUB_TOKEN}")
+        # get the author of that pr
+        PR_AUTHOR=$(echo $GITHUB_GET_PR | jq '.user.login')
+        # if it is not a bot then set it as the look up user from table
+        if [[ "$PR_AUTHOR" != *"[bot]"* ]]; then
+          LOOKUP_USER=$PR_AUTHOR
+        else #else get the reviewer of that pr
+          GITHUB_GET_PR_REVIEWERS=$(curl "${GITHUB_API}/pulls/${GITHUB_PR_NUMBER}/reviews" \
+          --header "Authorization: token ${GITHUB_TOKEN}")
+          # and get the first reviewer of that pr
+          LOOKUP_USER=$(echo $GITHUB_GET_PR_REVIEWERS | jq '.[0].user.login')
+        fi
 
         # look up email of Codan using Author name from github
         TABLE_INFO=$(curl -s -H "Authorization: Bearer ${CODA_API_TOKEN}" \
-          -G --data-urlencode "query=${CODA_NAME_COL}:\"${AUTHOR}\"" \
+          -G --data-urlencode "query=${CODA_GITHUB_COL}:\"${LOOKUP_USER}\"" \
           "${CODA_USER_ROSTER_TABLE_URL}")
         USER_EMAIL=$(echo "$TABLE_INFO" | \
         jq --arg CODA_USER_EMAIL_COL "$CODA_USER_EMAIL_COL" \
