@@ -51,7 +51,7 @@ workflows:
   test-pack:
     unless: << pipeline.parameters.run-integration-tests >>
     jobs:
-      - orb-tools/pack 
+      - orb-tools/pack
       - shellcheck/check:
           dir: ./src/scripts
       - bats/run:
@@ -65,7 +65,7 @@ workflows:
       # Publish development version of the orb.
       - orb-tools/publish-dev:
           orb-name: coda/utils
-          context: orb-publishing 
+          context: orb-publishing
           requires: [hold-for-dev-publish]
       # dev:${CIRCLE_SHA1:0:7} version of your orb
       - orb-tools/trigger-integration-tests-workflow:
@@ -91,4 +91,7 @@ workflows:
             - integration-test-notify
             - integration-test-slack
             - utils/cancel-older-awaiting-approvals
-
+          filters:
+            branches:
+              only:
+                - master

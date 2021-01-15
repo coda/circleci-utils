@@ -21,8 +21,12 @@ Example: `[semver:major]`
 
 * Squash and merge. Ensure the semver tag is preserved and entered as a part of the commit message.
 * On merge, after manual approval, the orb will automatically be published to the Orb Registry.
-
 ### How to Publish Dev Version
+
+Push your branch and CI will trigger dev published version of orb with the commit hash as the version.
+
+### How to Publish Dev VersionManually
+
 To manually pack your `orb.yml`, you can run `circleci orb pack .  > orb.yml` at the `@orb.yml` level.
 
 ```
@@ -30,3 +34,13 @@ cd src
 circleci orb pack .  > orb.yml
 circleci orb publish orb.yml coda/utils@dev:<your_branch_name>
 ```
+
+
+## Testing
+Using [bats](https://github.com/sstephenson/bats#installing-bats-from-source) to test bash scripts under src/tests.
+Individually testing for each command is done in `config.yml`.
+
+## Used in Following Repos:
+- infra
+- headless-chrome
+- experimental

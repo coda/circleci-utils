@@ -25,6 +25,16 @@ parameters:
       Coda columnId of the column storing the CircleCI username in the coda_user_roster_table_url document.
     type: string
     default: c-6ni4kHGNwE
+  coda_github_col:
+    description: |
+      Coda columnId of the column storing the CircleCI username in the coda_user_roster_table_url document.
+    type: string
+    default: c-6ni4kHGNwE
+  coda_user_email_col:
+    description: |
+      Coda columnId of the column storing the Coda email in the coda_user_roster_table_url document.
+    type: string
+    default: c-JXKd1-s5HB
   coda_circleci_user_alias_col:
     description: |
       Coda columnId of the column storing the user alias (when using email_domain), or fully qualified email.
@@ -48,6 +58,8 @@ steps:
       echo "export EMAIL_DOMAIN=<<parameters.email_domain>>" >> "$BASH_ENV"
       echo "export CODA_CIRCLECI_USER_ALIAS_COL=<<parameters.coda_circleci_user_alias_col>>" >> "$BASH_ENV"
       echo "export CODA_CIRCLECI_USER_NAME_COL=<<parameters.coda_circleci_user_name_col>>" >> "$BASH_ENV"
+      echo "export CODA_GITHUB_COL=<<parameters.coda_github_col>>" >> "$BASH_ENV"      
+      echo "export CODA_USER_EMAIL_COL=<<parameters.coda_user_email_col>>" >> "$BASH_ENV"
       echo "export CODA_USER_ROSTER_TABLE_URL=<<parameters.coda_user_roster_table_url>>" >> "$BASH_ENV"
       echo "export SLACK_BOT_TOKEN=<<parameters.slack_bot_token>>" >> "$BASH_ENV"
 - run:
@@ -57,7 +69,7 @@ steps:
     condition: $SLACK_USER_ID
     steps:
     - run:
-        name: Send Slack Message 
+        name: Send Slack Message
         command: |
           set -eo pipefail
           curl -X POST -H "Authorization: Bearer $PUSH_REMINDER_BOT_TOKEN" \
