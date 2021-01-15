@@ -4,7 +4,6 @@ setup() {
     source ./src/scripts/fetch_user_handles.sh
 }
 
-
 @test '2: Check Coda Email Exists' {
     export CIRCLE_USERNAME="gita-v"
     export CODA_API_TOKEN=$CODA_API_TOKEN
