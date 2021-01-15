@@ -1,8 +1,12 @@
+<!---
+  Must include [semver:<type>] in PR title in order to publish new version
+ -->
 
 **SEMVER Update Type:**
 - [ ] Major
 - [ ] Minor
 - [ ] Patch
+
 
 ## Description:
 
