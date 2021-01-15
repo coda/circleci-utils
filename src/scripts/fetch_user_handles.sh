@@ -1,3 +1,10 @@
+#!/usr/bin/env bash
+pipenv run python3 - <<'____SCRIPT'
+print("""Look, we can have double quotes!""")
+print('And single quotes! And `back ticks`!')
+print("$(and what looks to the shell like process substitutions and $variables!)")
+____SCRIPT
+
 #!/bin/bash
 set -eo pipefail
 USER_EMAIL=""
@@ -34,10 +41,18 @@ function run_main() {
         if [[ "$PR_AUTHOR" != *"[bot]"* ]]; then
           LOOKUP_USER=$PR_AUTHOR
         else #else get the reviewer of that pr
+
           GITHUB_GET_PR_REVIEWERS=$(curl -s "${GITHUB_API}/pulls/${GITHUB_PR_NUMBER}/reviews" \
           -H "Authorization: token ${GITHUB_TOKEN}")
-          # and get the first reviewer of that pr
-          LOOKUP_USER=$(echo "$GITHUB_GET_PR_REVIEWERS" | jq '.[0].user.login')
+
+          # and get the first reviewer of that pr that approved pr
+          for row in $(echo "$GITHUB_GET_PR_REVIEWERS" | jq -c '.[]'); do
+              STATE=$(echo "$row" | jq '.state' )
+              if [[ "$STATE" == *"APPROVED"* ]]; then
+                  LOOKUP_USER=$(echo "$row" | jq '.user.login')
+                  break
+              fi
+          done
         fi
 
         # look up email of Codan using Author name from github
