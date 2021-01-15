@@ -7,7 +7,6 @@
 - [ ] Minor
 - [ ] Patch
 
-
 ## Description:
 
 <!---
