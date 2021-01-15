@@ -1,10 +1,3 @@
-#!/usr/bin/env bash
-pipenv run python3 - <<'____SCRIPT'
-print("""Look, we can have double quotes!""")
-print('And single quotes! And `back ticks`!')
-print("$(and what looks to the shell like process substitutions and $variables!)")
-____SCRIPT
-
 #!/bin/bash
 set -eo pipefail
 USER_EMAIL=""
