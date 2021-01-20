@@ -3,7 +3,7 @@ set -eo pipefail
 USER_EMAIL=""
 SLACK_USER_ID=""
 # TO DO; change w/ github migration
-GITHUB_API="https://api.github.com/repos/kr-project/experimental"
+GITHUB_API="https://api.github.com/repos/kr-project/${CIRCLE_PROJECT_REPONAME}"
 function run_main() {
     # fetch all user information from coda doc based on users CircleCI username
     TABLE_INFO=$(curl -s -H "Authorization: Bearer ${CODA_API_TOKEN}" \
