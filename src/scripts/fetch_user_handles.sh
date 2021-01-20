@@ -3,7 +3,7 @@ set -eo pipefail
 USER_EMAIL=""
 SLACK_USER_ID=""
 # TO DO; change w/ github migration
-GITHUB_API="https://api.github.com/repos/kr-project/${CIRCLE_PROJECT_REPONAME}"
+GITHUB_API="https://api.github.com/repos/kr-project/experimental"
 function run_main() {
     # fetch all user information from coda doc based on users CircleCI username
     TABLE_INFO=$(curl -s -H "Authorization: Bearer ${CODA_API_TOKEN}" \
@@ -29,7 +29,7 @@ function run_main() {
         GITHUB_GET_PR=$(curl -s "${GITHUB_API}/pulls/${GITHUB_PR_NUMBER}" \
         -H "Authorization: Bearer ${GITHUB_TOKEN}")
         # get the author of that pr
-        PR_AUTHOR=$(echo "$GITHUB_GET_PR" | jq '.user.login')
+        PR_AUTHOR=$(echo "$GITHUB_GET_PR" | tr '\r\n' ' ' | jq '.user.login')
         # if it is not a bot then set it as the look up user from table
         if [[ "$PR_AUTHOR" != *"[bot]"* ]]; then
           LOOKUP_USER=$PR_AUTHOR
@@ -39,10 +39,10 @@ function run_main() {
           -H "Authorization: token ${GITHUB_TOKEN}")
 
           # and get the first reviewer of that pr that approved pr
-          for row in $(echo "$GITHUB_GET_PR_REVIEWERS" | jq -c '.[]'); do
-              STATE=$(echo "$row" | jq '.state' )
+          for row in $(echo "$GITHUB_GET_PR_REVIEWERS" | tr '\r\n' ' ' | jq -c '.[]'); do
+              STATE=$(echo "$row" | tr '\r\n' ' ' | jq '.state' )
               if [[ "$STATE" == *"APPROVED"* ]]; then
-                  LOOKUP_USER=$(echo "$row" | jq '.user.login')
+                  LOOKUP_USER=$(echo "$row" | tr '\r\n' ' ' | jq '.user.login')
                   break
               fi
           done
