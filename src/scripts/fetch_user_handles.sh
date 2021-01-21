@@ -11,9 +11,8 @@ function run_main() {
       "${CODA_USER_ROSTER_TABLE_URL}")
     # parse email from coda table
     USER_EMAIL=$(echo "$TABLE_INFO" | \
-      jq --arg CODA_USER_EMAIL_COL "$CODA_USER_EMAIL_COL" \
-      '.items[0].values."'"$CODA_USER_EMAIL_COL"'"' | \
-      tr -d '"')
+      jq -r --arg CODA_USER_EMAIL_COL "$CODA_USER_EMAIL_COL" \
+      '.items[0].values."'"$CODA_USER_EMAIL_COL"'"' )
 
     # if CircleCI username returned no email (ex; bot) get author of last git commit
     if [ "$USER_EMAIL" == "null" ]; then
@@ -29,7 +28,7 @@ function run_main() {
         GITHUB_GET_PR=$(curl -s "${GITHUB_API}/pulls/${GITHUB_PR_NUMBER}" \
         -H "Authorization: Bearer ${GITHUB_TOKEN}")
         # get the author of that pr
-        PR_AUTHOR=$(echo "$GITHUB_GET_PR" | jq '.user.login' | tr -d '"')
+        PR_AUTHOR=$(echo "$GITHUB_GET_PR" | jq -r '.user.login' )
         # if it is not a bot then set it as the look up user from table
         if [[ "$PR_AUTHOR" != *"[bot]"* ]]; then
           LOOKUP_USER=$PR_AUTHOR
@@ -42,7 +41,7 @@ function run_main() {
           for row in $(echo "$GITHUB_GET_PR_REVIEWERS" | jq -c '.[]'); do
               STATE=$(echo "$row" | jq '.state' )
               if [[ "$STATE" == *"APPROVED"* ]]; then
-                  LOOKUP_USER=$(echo "$row" | jq '.user.login' | tr -d '"')
+                  LOOKUP_USER=$(echo "$row" | jq -r '.user.login' )
                   break
               fi
           done
@@ -55,9 +54,8 @@ function run_main() {
 
         # look up the email from that Codan
         USER_EMAIL=$(echo "$TABLE_INFO" | \
-        jq --arg CODA_USER_EMAIL_COL "$CODA_USER_EMAIL_COL" \
-        '.items[0].values."'"$CODA_USER_EMAIL_COL"'"' | \
-        tr -d '"')
+        jq -r --arg CODA_USER_EMAIL_COL "$CODA_USER_EMAIL_COL" \
+        '.items[0].values."'"$CODA_USER_EMAIL_COL"'"' )
         # potentially null if dependabot
         if [ "$USER_EMAIL" == "null" ]; then
             USER_EMAIL=""
@@ -67,7 +65,7 @@ function run_main() {
     if [ -n "$SLACK_BOT_TOKEN" ]; then
         SLACK_USER_ID=$(curl -s -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
             "https://slack.com/api/users.lookupByEmail?email=${USER_EMAIL}" \
-            | jq '.user.id' | tr -d '"')
+            | jq -r '.user.id')
     fi
     # need to echo result for bats test to capture
     echo "$USER_EMAIL"
