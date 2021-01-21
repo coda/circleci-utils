@@ -15,7 +15,7 @@ parameters:
       https://coda.io/apis/v1/docs/<DOCID>/tables/<TABLEID>/rows.
     type: string
     default: https://coda.io/apis/v1/docs/CBRzjlr8md/tables/table-37x7Jsfrqx/rows
-  CODA_PROD_TOKEN:
+  coda_prod_token:
     description: |
       Env var of a token granted read access to the coda_user_roster_table_url document.
     type: string
@@ -49,7 +49,7 @@ steps:
 - run:
     name: Set variables
     command: |
-      echo "export CODA_PROD_TOKEN=<<parameters.CODA_PROD_TOKEN>>" >> "$BASH_ENV"
+      echo "export CODA_PROD_TOKEN=<<parameters.coda_prod_token>>" >> "$BASH_ENV"
       echo "export EMAIL_DOMAIN=<<parameters.email_domain>>" >> "$BASH_ENV"
       echo "export CODA_CIRCLECI_USER_NAME_COL=<<parameters.coda_circleci_user_name_col>>" >> "$BASH_ENV"
       echo "export CODA_GITHUB_COL=<<parameters.coda_github_col>>" >> "$BASH_ENV"

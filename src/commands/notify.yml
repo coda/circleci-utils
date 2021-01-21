@@ -34,7 +34,7 @@ parameters:
     default: true
     description: Success information of circleci build
     type: boolean
-  CODA_PROD_TOKEN:
+  coda_prod_token:
     default: $CODA_PROD_TOKEN
     description: |
       Env var of a token granted read access to the coda_user_roster_table_url document.
@@ -54,7 +54,7 @@ steps:
     name: Set variables
     when: always
     command: |
-      echo "export CODA_PROD_TOKEN=<<parameters.CODA_PROD_TOKEN>>" >> "$BASH_ENV"
+      echo "export CODA_PROD_TOKEN=<<parameters.coda_prod_token>>" >> "$BASH_ENV"
       echo "export CIRCLECI_TOKEN=<<parameters.circle_token>>" >> "$BASH_ENV"
       echo "export EMAIL_DOMAIN=<<parameters.email_domain>>" >> "$BASH_ENV"
       echo "export CODA_CIRCLECI_USER_NAME_COL=<<parameters.coda_circleci_user_name_col>>" >> "$BASH_ENV"

@@ -15,7 +15,7 @@ parameters:
       https://coda.io/apis/v1/docs/<DOCID>/tables/<TABLEID>/rows.
     type: string
     default: https://coda.io/apis/v1/docs/CBRzjlr8md/tables/table-37x7Jsfrqx/rows
-  CODA_PROD_TOKEN:
+  coda_prod_token:
     description: |
       Env var of a token granted read access to the coda_user_roster_table_url document.
     type: string
@@ -49,7 +49,7 @@ parameters:
 executor: default
 steps:
   - slack-notify-waiting-for-approval:
-      CODA_PROD_TOKEN: <<parameters.CODA_PROD_TOKEN>>
+      CODA_PROD_TOKEN: <<parameters.coda_prod_token>>
       coda_circleci_user_name_col: <<parameters.coda_circleci_user_name_col>>
       coda_user_email_col: <<parameters.coda_user_email_col>>
       coda_github_col: <<parameters.coda_github_col>>
