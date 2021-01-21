@@ -49,7 +49,7 @@ parameters:
 executor: default
 steps:
   - slack-notify-waiting-for-approval:
-      CODA_PROD_TOKEN: <<parameters.coda_prod_token>>
+      coda_prod_token: <<parameters.coda_prod_token>>
       coda_circleci_user_name_col: <<parameters.coda_circleci_user_name_col>>
       coda_user_email_col: <<parameters.coda_user_email_col>>
       coda_github_col: <<parameters.coda_github_col>>
