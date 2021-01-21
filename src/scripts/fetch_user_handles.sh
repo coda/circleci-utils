@@ -3,15 +3,15 @@ set -eo pipefail
 USER_EMAIL=""
 SLACK_USER_ID=""
 # TO DO; change w/ github migration
-GITHUB_API="https://api.github.com/repos/kr-project/${CIRCLE_PROJECT_REPONAME}"
+GITHUB_API="https://api.github.com/repos/kr-project/experimental"
 function run_main() {
     # fetch all user information from coda doc based on users CircleCI username
-    TABLE_INFO=$(curl -s -H "Authorization: Bearer ${CODA_API_TOKEN}" \
+    TABLE_INFO=$(curl -s -H "Authorization: Bearer ${CODA_PROD_TOKEN}" \
       -G --data-urlencode "query=${CODA_CIRCLECI_USER_NAME_COL}:\"${CIRCLE_USERNAME}\"" \
       "${CODA_USER_ROSTER_TABLE_URL}")
     # parse email from coda table
     USER_EMAIL=$(echo "$TABLE_INFO" | \
-      jq --arg CODA_CIRCLECI_USER_ALIAS_COL "$CODA_USER_EMAIL_COL" \
+      jq --arg CODA_USER_EMAIL_COL "$CODA_USER_EMAIL_COL" \
       '.items[0].values."'"$CODA_USER_EMAIL_COL"'"' | \
       tr -d '"')
 
@@ -29,7 +29,7 @@ function run_main() {
         GITHUB_GET_PR=$(curl -s "${GITHUB_API}/pulls/${GITHUB_PR_NUMBER}" \
         -H "Authorization: Bearer ${GITHUB_TOKEN}")
         # get the author of that pr
-        PR_AUTHOR=$(echo "$GITHUB_GET_PR" | tr '\r\n' ' ' | jq '.user.login')
+        PR_AUTHOR=$(echo "$GITHUB_GET_PR" | jq '.user.login' | tr -d '"')
         # if it is not a bot then set it as the look up user from table
         if [[ "$PR_AUTHOR" != *"[bot]"* ]]; then
           LOOKUP_USER=$PR_AUTHOR
@@ -39,17 +39,17 @@ function run_main() {
           -H "Authorization: token ${GITHUB_TOKEN}")
 
           # and get the first reviewer of that pr that approved pr
-          for row in $(echo "$GITHUB_GET_PR_REVIEWERS" | tr '\r\n' ' ' | jq -c '.[]'); do
-              STATE=$(echo "$row" | tr '\r\n' ' ' | jq '.state' )
+          for row in $(echo "$GITHUB_GET_PR_REVIEWERS" | jq -c '.[]'); do
+              STATE=$(echo "$row" | jq '.state' )
               if [[ "$STATE" == *"APPROVED"* ]]; then
-                  LOOKUP_USER=$(echo "$row" | tr '\r\n' ' ' | jq '.user.login')
+                  LOOKUP_USER=$(echo "$row" | jq '.user.login' | tr -d '"')
                   break
               fi
           done
         fi
 
         # look up email of Codan using Author name from github
-        TABLE_INFO=$(curl -s -H "Authorization: Bearer ${CODA_API_TOKEN}" \
+        TABLE_INFO=$(curl -s -H "Authorization: Bearer ${CODA_PROD_TOKEN}" \
           -G --data-urlencode "query=${CODA_GITHUB_COL}:\"${LOOKUP_USER}\"" \
           "${CODA_USER_ROSTER_TABLE_URL}")
 

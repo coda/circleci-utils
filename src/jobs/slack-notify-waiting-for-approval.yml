@@ -14,32 +14,27 @@ parameters:
       Fully qualified API URL to a table containing CIRCLECI_USERNAME to email aliases.    Must be of the form
       https://coda.io/apis/v1/docs/<DOCID>/tables/<TABLEID>/rows.
     type: string
-    default: https://staging.coda.io/apis/v1/docs/s2i6oFeghW/tables/grid-QGyaiXZDwu/rows
-  coda_api_token:
+    default: https://coda.io/apis/v1/docs/CBRzjlr8md/tables/table-x-ueLEkU_Q/rows
+  CODA_PROD_TOKEN:
     description: |
       Env var of a token granted read access to the coda_user_roster_table_url document.
     type: string
-    default: $CODA_API_TOKEN
+    default: $CODA_PROD_TOKEN
   coda_circleci_user_name_col:
     description: |
       Coda columnId of the column storing the CircelCI username (typically github alias).
     type: string
-    default: c-6ni4kHGNwE
+    default: c-HWxgJukgCs
   coda_github_col:
     description: |
       Coda columnId of the column storing the full name in the coda_user_roster_table_url document.
     type: string
-    default: c-6ni4kHGNwE
+    default: c-HWxgJukgCs
   coda_user_email_col:
     description: |
       Coda columnId of the column storing the Coda email in the coda_user_roster_table_url document.
     type: string
-    default: c-JXKd1-s5HB
-  coda_circleci_user_alias_col:
-    description: |
-      Coda columnId of the column storing the user alias (if using email_domain), or fully qualified email.
-    type: string
-    default: c-26If9Zttyp
+    default: c-l3XSvkG3vB
   email_domain:
     description: |
       Optional email domain for users within the workspace.   Must be specified if user aliases are not fully qualified.
@@ -54,8 +49,7 @@ parameters:
 executor: default
 steps:
   - slack-notify-waiting-for-approval:
-      coda_api_token: <<parameters.coda_api_token>>
-      coda_circleci_user_alias_col: <<parameters.coda_circleci_user_alias_col>>
+      CODA_PROD_TOKEN: <<parameters.CODA_PROD_TOKEN>>
       coda_circleci_user_name_col: <<parameters.coda_circleci_user_name_col>>
       coda_user_email_col: <<parameters.coda_user_email_col>>
       coda_github_col: <<parameters.coda_github_col>>
