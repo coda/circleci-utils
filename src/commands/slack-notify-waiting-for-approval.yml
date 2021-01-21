@@ -14,7 +14,7 @@ parameters:
       Fully qualified API URL to a table containing CIRCLECI_USERNAMEs to email aliases.    Must be of the form
       https://coda.io/apis/v1/docs/<DOCID>/tables/<TABLEID>/rows.
     type: string
-    default: https://coda.io/apis/v1/docs/CBRzjlr8md/tables/table-x-ueLEkU_Q/rows
+    default: https://coda.io/apis/v1/docs/CBRzjlr8md/tables/table-37x7Jsfrqx/rows
   CODA_PROD_TOKEN:
     description: |
       Env var of a token granted read access to the coda_user_roster_table_url document.

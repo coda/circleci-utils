@@ -10,7 +10,7 @@ setup() {
     export CODA_CIRCLECI_USER_NAME_COL="c-HWxgJukgCs"
     export CODA_USER_EMAIL_COL="c-l3XSvkG3vB"
     export CODA_GITHUB_COL="c-HWxgJukgCs"
-    export CODA_USER_ROSTER_TABLE_URL="https://coda.io/apis/v1/docs/CBRzjlr8md/tables/table-x-ueLEkU_Q/rows"
+    export CODA_USER_ROSTER_TABLE_URL="https://coda.io/apis/v1/docs/CBRzjlr8md/tables/table-37x7Jsfrqx/rows"
     result=$(run_main)
     [[ "$result" == *"gita@coda.io"* ]]
 }
@@ -21,7 +21,7 @@ setup() {
     export CODA_CIRCLECI_USER_NAME_COL="c-HWxgJukgCs"
     export CODA_USER_EMAIL_COL="c-l3XSvkG3vB"
     export CODA_GITHUB_COL="c-HWxgJukgCs"
-    export CODA_USER_ROSTER_TABLE_URL="https://coda.io/apis/v1/docs/CBRzjlr8md/tables/table-x-ueLEkU_Q/rows"
+    export CODA_USER_ROSTER_TABLE_URL="https://coda.io/apis/v1/docs/CBRzjlr8md/tables/table-37x7Jsfrqx/rows"
     result=$(run_main)
     [[ "$result" != "coda@io" ]]
 
@@ -33,7 +33,7 @@ setup() {
     export CODA_CIRCLECI_USER_NAME_COL="c-HWxgJukgCs"
     export CODA_USER_EMAIL_COL="c-l3XSvkG3vB"
     export CODA_GITHUB_COL="c-HWxgJukgCs"
-    export CODA_USER_ROSTER_TABLE_URL="https://coda.io/apis/v1/docs/CBRzjlr8md/tables/table-x-ueLEkU_Q/rows"
+    export CODA_USER_ROSTER_TABLE_URL="https://coda.io/apis/v1/docs/CBRzjlr8md/tables/table-37x7Jsfrqx/rows"
     export SLACK_BOT_TOKEN=$PUSH_REMINDER_BOT_TOKEN
     result=$(run_main)
     [[ "$result" == *"U01DJE1DABE"* ]]
