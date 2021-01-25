@@ -63,7 +63,7 @@ steps:
       echo "export CODA_USER_ROSTER_TABLE_URL=<<parameters.coda_user_roster_table_url>>" >> "$BASH_ENV"
 - run:
     name: Fetch User Information
-    when: always
+    when: on_fail
     command: <<include(scripts/fetch_user_handles.sh)>>
 - when:
     condition: <<parameters.on_failure>>
@@ -97,6 +97,7 @@ steps:
         mv /tmp/webhook_temp.json /tmp/raw-webhook.json
       fi
     name: Add user email to Webhook
+    when: on_fail
 - run:
     command: |
       if [ -n "${DIFF_URL}" ]; then
