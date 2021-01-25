@@ -35,7 +35,7 @@ function run_main() {
         else #else get the reviewer of that pr
 
           GITHUB_GET_PR_REVIEWERS=$(curl -s "${GITHUB_API}/pulls/${GITHUB_PR_NUMBER}/reviews" \
-          -H "Authorization: token ${GITHUB_TOKEN}")
+          -H "Authorization: token ${GITHUB_TOKEN}" |  tr -d " \t\n\r" )
 
           # and get the first reviewer of that pr that approved pr
           for row in $(echo "$GITHUB_GET_PR_REVIEWERS" | jq -c '.[]'); do
