@@ -119,7 +119,7 @@ steps:
     steps:
     - run:
         command: |
-          alias="(env.CIRCLE_PROJECT_REPONAME)%2F(env.CIRCLE_BRANCH)%23(env.CIRCLE_JOB)"
+          alias="${CIRCLE_PROJECT_REPONAME}%2F${CIRCLE_BRANCH}%23${CIRCLE_JOB}"
           echo "https://api.opsgenie.com/v2/alerts/${alias}/close"
           cat /tmp/raw-webhook.json
           curl -X POST -H"Content-Type:application/json" -H "Authorization: GenieKey ${OPS_GENIE_API_KEY}" -d @/tmp/webhook.json "https://api.opsgenie.com/v2/alerts/${alias}/close"
