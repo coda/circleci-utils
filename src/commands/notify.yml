@@ -93,7 +93,7 @@ steps:
           "user":"CI Orb",
           "source":"CI Orb",
           "note":"Succesful pass: close alerts"
-      }' > /tmp/raw-webhook.json
+      }' > /tmp/webhook.json
     name: Bundle build info into webhook payload
     when: on_success
 - run:
@@ -120,8 +120,6 @@ steps:
     - run:
         command: |
           alias="${CIRCLE_PROJECT_REPONAME}%2F${CIRCLE_BRANCH}%23${CIRCLE_JOB}"
-          echo "https://api.opsgenie.com/v2/alerts/${alias}/close"
-          cat /tmp/raw-webhook.json
           curl -X POST -H"Content-Type:application/json" -H "Authorization: GenieKey ${OPS_GENIE_API_KEY}" -d @/tmp/webhook.json "https://api.opsgenie.com/v2/alerts/${alias}/close"
         name: Notify $<<parameters.endpoint>> with Success Webhook
         when: on_success
