@@ -76,7 +76,7 @@ steps:
     command: |
       echo '{}' | jq '{
         "message": "[CircleCI] [#\(env.CIRCLE_PREVIOUS_BUILD_NUM)]: workflow \(env.CIRCLE_BRANCH) stage \(env.CIRCLE_STAGE) job \(env.CIRCLE_JOB)",
-        "alias": "\(env.CIRCLE_PROJECT_REPONAME)/\(env.CIRCLE_BRANCH)#\(env.CIRCLE_JOB) ",
+        "alias": "\(env.CIRCLE_PROJECT_REPONAME)/\(env.CIRCLE_BRANCH)#\(env.CIRCLE_JOB)",
         "description":"See \(env.CIRCLE_BUILD_URL) for more details. ",
         "outcome": "unknown",
         "username": env.CIRCLE_USERNAME,
@@ -111,8 +111,9 @@ steps:
     steps:
     - run:
         command: |
+          alias="\(env.CIRCLE_PROJECT_REPONAME)/\(env.CIRCLE_BRANCH)#\(env.CIRCLE_JOB)"
           cat /tmp/raw-webhook.json | jq '.details.outcome="success"'  > /tmp/webhook.json
-          curl -X POST -H"Content-Type:application/json" -H "Authorization: GenieKey ${OPS_GENIE_API_KEY}" -d @/tmp/webhook.json https://api.opsgenie.com/v2/alerts
+          curl -X POST -H"Content-Type:application/json" -H "Authorization: GenieKey ${OPS_GENIE_API_KEY}" -d @/tmp/webhook.json "https://api.opsgenie.com/v2/alerts/${alias}/close"
         name: Notify $<<parameters.endpoint>> with Success Webhook
         when: on_success
 - when:
