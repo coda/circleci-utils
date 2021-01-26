@@ -82,7 +82,8 @@ steps:
         "username": env.CIRCLE_USERNAME,
         "details": {
           "build_number":env.CIRCLE_PREVIOUS_BUILD_NUM,
-          "build_url": env.CIRCLE_BUILD_URL
+          "build_url": env.CIRCLE_BUILD_URL,
+          "outcome": "failed"
           }
       }' > /tmp/raw-webhook.json
     name: Bundle build info into webhook payload
