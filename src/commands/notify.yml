@@ -129,6 +129,8 @@ steps:
     steps:
     - run:
         command: |
-          curl -X POST -H"Content-Type:application/json" -H "Authorization: GenieKey ${OPS_GENIE_API_KEY}" -d @/tmp/webhook.json https://api.opsgenie.com/v2/alerts
+          cat /tmp/raw-webhook.json | jq '.details.outcome="failed"'  > /tmp/webhook.json
+          mv /tmp/webhook_temp.json /tmp/raw-webhook.json
+          curl -X POST -H"Content-Type:application/json" -H "Authorization: GenieKey ${OPS_GENIE_API_KEY}" -d @/tmp/raw-webhook.json https://api.opsgenie.com/v2/alerts
         name: Notify $<<parameters.endpoint>> with Failure Webhook
         when: on_fail
