@@ -76,18 +76,27 @@ steps:
     command: |
       echo '{}' | jq '{
         "message": "[CircleCI] [#\(env.CIRCLE_PREVIOUS_BUILD_NUM)]: workflow \(env.CIRCLE_BRANCH) stage \(env.CIRCLE_STAGE) job \(env.CIRCLE_JOB)",
-        "alias": "\(env.CIRCLE_PROJECT_REPONAME)/\(env.CIRCLE_BRANCH)#\(env.CIRCLE_JOB) ",
+        "alias": "\(env.CIRCLE_PROJECT_REPONAME)/\(env.CIRCLE_BRANCH)#\(env.CIRCLE_JOB)",
         "description":"See \(env.CIRCLE_BUILD_URL) for more details. ",
-        "outcome": "unknown",
+        "outcome": "failed",
         "username": env.CIRCLE_USERNAME,
         "details": {
           "build_number":env.CIRCLE_PREVIOUS_BUILD_NUM,
-          "build_url": env.CIRCLE_BUILD_URL
+          "build_url": env.CIRCLE_BUILD_URL,
+          "outcome": "failed"
           }
       }' > /tmp/raw-webhook.json
     name: Bundle build info into webhook payload
-    when: always
-
+    when: on_fail
+- run:
+    command: |
+      echo '{
+          "user":"CI Orb",
+          "source":"CI Orb",
+          "note":"Succesful pass: close alerts"
+      }' > /tmp/webhook.json
+    name: Bundle build info into webhook payload
+    when: on_success
 - run:
   # Can not evaluate bash variables on ci conditional; must set inside command
     command: |
@@ -111,8 +120,8 @@ steps:
     steps:
     - run:
         command: |
-          cat /tmp/raw-webhook.json | jq '.details.outcome="success"'  > /tmp/webhook.json
-          curl -X POST -H"Content-Type:application/json" -H "Authorization: GenieKey ${OPS_GENIE_API_KEY}" -d @/tmp/webhook.json https://api.opsgenie.com/v2/alerts
+          alias="${CIRCLE_PROJECT_REPONAME}%2F${CIRCLE_BRANCH}%23${CIRCLE_JOB}"
+          curl -X POST -H"Content-Type:application/json" -H "Authorization: GenieKey ${OPS_GENIE_API_KEY}" -d @/tmp/webhook.json "https://api.opsgenie.com/v2/alerts/${alias}/close"
         name: Notify $<<parameters.endpoint>> with Success Webhook
         when: on_success
 - when:
@@ -121,6 +130,7 @@ steps:
     - run:
         command: |
           cat /tmp/raw-webhook.json | jq '.details.outcome="failed"'  > /tmp/webhook.json
+          mv /tmp/webhook_temp.json /tmp/raw-webhook.json
           curl -X POST -H"Content-Type:application/json" -H "Authorization: GenieKey ${OPS_GENIE_API_KEY}" -d @/tmp/raw-webhook.json https://api.opsgenie.com/v2/alerts
         name: Notify $<<parameters.endpoint>> with Failure Webhook
         when: on_fail
