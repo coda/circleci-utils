@@ -8,4 +8,4 @@ description: >
   - Cancel older CI alerts waiting for approval 
 
 display:
-  source_url: "https://github.com/kr-project/circleci-utils"
+  source_url: "https://github.com/coda-hq/circleci-utils"
