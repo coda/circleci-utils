@@ -121,7 +121,7 @@ steps:
     - run:
         command: |
           alias="${CIRCLE_PROJECT_REPONAME}%2F${CIRCLE_BRANCH}%23${CIRCLE_JOB}"
-          curl -X POST -H"Content-Type:application/json" -H "Authorization: GenieKey ${OPS_GENIE_API_KEY}" -d @/tmp/webhook.json "https://api.opsgenie.com/v2/alerts/${alias}/close"
+          curl -X POST -H"Content-Type:application/json" -H "Authorization: GenieKey ${OPS_GENIE_API_KEY}" -d @/tmp/webhook.json "https://api.opsgenie.com/v2/alerts/${alias}/close?identifierType=alias"
         name: Notify $<<parameters.endpoint>> with Success Webhook
         when: on_success
 - when:
