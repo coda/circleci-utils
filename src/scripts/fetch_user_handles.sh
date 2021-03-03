@@ -9,6 +9,10 @@ function run_main() {
     TABLE_INFO=$(curl -s -H "Authorization: Bearer ${CODA_PROD_TOKEN}" \
       -G --data-urlencode "query=${CODA_CIRCLECI_USER_NAME_COL}:\"${CIRCLE_USERNAME}\"" \
       "${CODA_USER_ROSTER_TABLE_URL}")
+    if [ -z "$TABLE_INFO" ]; then
+      echo "${CIRCLE_USERNAME} username does not exist in go/roster; please add it in"
+      exit 1
+    fi
     # parse email from coda table
     USER_EMAIL=$(echo "$TABLE_INFO" | \
       jq -r --arg CODA_USER_EMAIL_COL "$CODA_USER_EMAIL_COL" \
