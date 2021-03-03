@@ -2,75 +2,22 @@
 set -eo pipefail
 USER_EMAIL=""
 SLACK_USER_ID=""
+GITHUB_SUFFIX="-codaio"
 # TO DO; change w/ github migration
-GITHUB_API="https://api.github.com/repos/coda-hq/${CIRCLE_PROJECT_REPONAME}"
 function run_main() {
-    # fetch all user information from coda doc based on users CircleCI username
-    TABLE_INFO=$(curl -s -H "Authorization: Bearer ${CODA_PROD_TOKEN}" \
-      -G --data-urlencode "query=${CODA_CIRCLECI_USER_NAME_COL}:\"${CIRCLE_USERNAME}\"" \
-      "${CODA_USER_ROSTER_TABLE_URL}")
-    if [ -z "$TABLE_INFO" ]; then
-      echo "${CIRCLE_USERNAME} username does not exist in go/roster; please add it in"
-      exit 1
+    if [[ "$CIRCLE_USERNAME" != *"$GITHUB_SUFFIX"* ]]; then
+      echo "${CIRCLE_USERNAME} has incorrect git username -- please add -codaio and update in go/roster"
+      exit 0
     fi
-    # parse email from coda table
-    USER_EMAIL=$(echo "$TABLE_INFO" | \
-      jq -r --arg CODA_USER_EMAIL_COL "$CODA_USER_EMAIL_COL" \
-      '.items[0].values."'"$CODA_USER_EMAIL_COL"'"' )
-
-    # if CircleCI username returned no email (ex; bot) get author of last git commit
-    if [ "$USER_EMAIL" == "null" ]; then
-
-        #get pull requests from pr
-        GITHUB_PRS_FROM_COMMIT=$(curl -s "${GITHUB_API}/commits/${CIRCLE_SHA1}/pulls" \
-          -H "Accept: application/vnd.github.groot-preview+json" \
-          -H "Authorization: Bearer ${GITHUB_TOKEN}")
-
-        # get first pr number from list pull requests
-        GITHUB_PR_NUMBER=$(echo "$GITHUB_PRS_FROM_COMMIT" | tr '\r\n' ' ' | jq '.[0].number')
-        # get associated information from that pr
-        GITHUB_GET_PR=$(curl -s "${GITHUB_API}/pulls/${GITHUB_PR_NUMBER}" \
-        -H "Authorization: Bearer ${GITHUB_TOKEN}")
-        # get the author of that pr
-        PR_AUTHOR=$(echo "$GITHUB_GET_PR" | jq -r '.user.login' )
-        # if it is not a bot then set it as the look up user from table
-        if [[ "$PR_AUTHOR" != *"[bot]"* ]]; then
-          LOOKUP_USER=$PR_AUTHOR
-        else #else get the reviewer of that pr
-
-          GITHUB_GET_PR_REVIEWERS=$(curl -s "${GITHUB_API}/pulls/${GITHUB_PR_NUMBER}/reviews" \
-          -H "Authorization: token ${GITHUB_TOKEN}" |  tr -d " \t\n\r" )
-
-          # and get the first reviewer of that pr that approved pr
-          for row in $(echo "$GITHUB_GET_PR_REVIEWERS" | jq -c '.[]'); do
-              STATE=$(echo "$row" | jq '.state' )
-              if [[ "$STATE" == *"APPROVED"* ]]; then
-                  LOOKUP_USER=$(echo "$row" | jq -r '.user.login' )
-                  break
-              fi
-          done
-        fi
-
-        # look up email of Codan using Author name from github
-        TABLE_INFO=$(curl -s -H "Authorization: Bearer ${CODA_PROD_TOKEN}" \
-          -G --data-urlencode "query=${CODA_GITHUB_COL}:\"${LOOKUP_USER}\"" \
-          "${CODA_USER_ROSTER_TABLE_URL}")
-
-        # look up the email from that Codan
-        USER_EMAIL=$(echo "$TABLE_INFO" | \
-        jq -r --arg CODA_USER_EMAIL_COL "$CODA_USER_EMAIL_COL" \
-        '.items[0].values."'"$CODA_USER_EMAIL_COL"'"' )
-        # potentially null if dependabot
-        if [ "$USER_EMAIL" == "null" ]; then
-            USER_EMAIL=""
-        fi
-    fi
+     # shellcheck disable=SC2001
+    USER_EMAIL=$(echo "${CIRCLE_USERNAME}" | sed "s/${GITHUB_SUFFIX}$/@${EMAIL_DOMAIN}/")
 
     if [ -n "$SLACK_BOT_TOKEN" ]; then
         SLACK_USER_ID=$(curl -s -H "Authorization: Bearer $SLACK_BOT_TOKEN" \
             "https://slack.com/api/users.lookupByEmail?email=${USER_EMAIL}" \
             | jq -r '.user.id')
     fi
+    
     # need to echo result for bats test to capture
     echo "$USER_EMAIL"
     echo "$SLACK_USER_ID"

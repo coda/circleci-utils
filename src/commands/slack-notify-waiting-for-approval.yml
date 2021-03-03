@@ -49,12 +49,7 @@ steps:
 - run:
     name: Set variables
     command: |
-      echo "export CODA_PROD_TOKEN=<<parameters.coda_prod_token>>" >> "$BASH_ENV"
       echo "export EMAIL_DOMAIN=<<parameters.email_domain>>" >> "$BASH_ENV"
-      echo "export CODA_CIRCLECI_USER_NAME_COL=<<parameters.coda_circleci_user_name_col>>" >> "$BASH_ENV"
-      echo "export CODA_GITHUB_COL=<<parameters.coda_github_col>>" >> "$BASH_ENV"
-      echo "export CODA_USER_EMAIL_COL=<<parameters.coda_user_email_col>>" >> "$BASH_ENV"
-      echo "export CODA_USER_ROSTER_TABLE_URL=<<parameters.coda_user_roster_table_url>>" >> "$BASH_ENV"
       echo "export SLACK_BOT_TOKEN=<<parameters.slack_bot_token>>" >> "$BASH_ENV"
 - run:
     name: Fetch User Information from Look Up Table

@@ -3,38 +3,10 @@ description: |
   Depends on jq being present.
 
   Setup:
-    1. Create Coda document with a table containing columns `circleci alias` (ex: github username) and `email`, and populate this table with information for each github user.
-    3. Find the docId, tableId, and columnIds for the circleci user alias and email columnIds.
-    4. Create a Coda API token for this document at https://coda.io/account - limit the token to read access to the target table.
-    5. Setup a Slack Bot account with scopes `users:read`, `users:read.email`, and `chat:write`.
-    6. Configure orb based on required args
+    1. Ensure github user has format <email-prefix>-codaio 
+    2. Setup a Slack Bot account with scopes `users:read`, `users:read.email`, and `chat:write`.
+    3. Configure orb based on required args
 parameters:
-  coda_user_roster_table_url:
-    description: |
-      Fully qualified API URL to a table containing CIRCLECI_USERNAME to email aliases.    Must be of the form
-      https://coda.io/apis/v1/docs/<DOCID>/tables/<TABLEID>/rows.
-    type: string
-    default: https://coda.io/apis/v1/docs/CBRzjlr8md/tables/table-37x7Jsfrqx/rows
-  coda_prod_token:
-    description: |
-      Env var of a token granted read access to the coda_user_roster_table_url document.
-    type: string
-    default: $CODA_PROD_TOKEN
-  coda_circleci_user_name_col:
-    description: |
-      Coda columnId of the column storing the CircelCI username (typically github alias).
-    type: string
-    default: c-HWxgJukgCs
-  coda_github_col:
-    description: |
-      Coda columnId of the column storing the full name in the coda_user_roster_table_url document.
-    type: string
-    default: c-HWxgJukgCs
-  coda_user_email_col:
-    description: |
-      Coda columnId of the column storing the Coda email in the coda_user_roster_table_url document.
-    type: string
-    default: c-l3XSvkG3vB
   email_domain:
     description: |
       Optional email domain for users within the workspace.   Must be specified if user aliases are not fully qualified.
@@ -45,14 +17,8 @@ parameters:
     type: string
     description: |
       Token used by Slack bot application.   Must have scopes `users:read`, `users:read.email`, and `chat:write`.
-
 executor: default
 steps:
   - slack-notify-waiting-for-approval:
-      coda_prod_token: <<parameters.coda_prod_token>>
-      coda_circleci_user_name_col: <<parameters.coda_circleci_user_name_col>>
-      coda_user_email_col: <<parameters.coda_user_email_col>>
-      coda_github_col: <<parameters.coda_github_col>>
-      coda_user_roster_table_url: <<parameters.coda_user_roster_table_url>>
       email_domain: <<parameters.email_domain>>
       slack_bot_token: <<parameters.slack_bot_token>>
