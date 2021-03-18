@@ -1,5 +1,12 @@
 version: 2.1
 
+default_build_environment: &default_build_environment
+  docker:
+    - image: cimg/base:stable
+      auth:
+        username: codainternaltools
+        password: $DOCKERHUB_PASSWORD
+
 orbs:
   utils: coda/utils@<<pipeline.parameters.dev-orb-version>>
   orb-tools: circleci/orb-tools@10.0
@@ -25,24 +32,21 @@ commands:
 
 jobs:
   integration-test-notify:
-    docker:
-      - image: cimg/base:stable
+    <<: *default_build_environment
     steps:
       - checkout
       - utils/notify:
           on_success: true
 
   integration-test-slack:
-    docker:
-      - image: cimg/base:stable
+    <<: *default_build_environment
     steps:
       - checkout
       - utils/slack-notify-waiting-for-approval:
           slack_bot_token: ${PUSH_REMINDER_BOT_TOKEN}
 
   integration-test-cancel-older-jobs:
-    docker:
-      - image: cimg/base:stable
+    <<: *default_build_environment
     steps:
       - checkout
       - utils/cancel-older-awaiting-approvals
@@ -51,12 +55,20 @@ workflows:
   test-pack:
     unless: << pipeline.parameters.run-integration-tests >>
     jobs:
-      - orb-tools/pack
+      - orb-tools/pack:
+          context:
+            - dockerhub
       - shellcheck/check:
+          context:
+            - dockerhub
           dir: ./src/scripts
       - bats/run:
+          context:
+            - dockerhub
           path: ./src/tests
       - hold-for-dev-publish:
+          context:
+            - dockerhub
           type: approval
           requires:
             - orb-tools/pack
@@ -64,25 +76,40 @@ workflows:
             - shellcheck/check
       # Publish development version of the orb.
       - orb-tools/publish-dev:
+          context:
+            - dockerhub
+            - orb-publishing
           orb-name: coda/utils
-          context: orb-publishing
           requires: [hold-for-dev-publish]
       # dev:${CIRCLE_SHA1:0:7} version of your orb
       - orb-tools/trigger-integration-tests-workflow:
           name: trigger-integration-dev
-          context: orb-publishing
+          context:
+            - dockerhub
+            - orb-publishing
           requires:
             - orb-tools/publish-dev
 
   integration-test_deploy:
     when: << pipeline.parameters.run-integration-tests >>
     jobs:
-      - integration-test-notify
-      - integration-test-slack
-      - utils/cancel-older-awaiting-approvals
+      - integration-test-notify:
+          context:
+            - dockerhub
+            - orb-publishing
+      - integration-test-slack:
+          context:
+            - dockerhub
+            - orb-publishing
+      - utils/cancel-older-awaiting-approvals:
+          context:
+            - dockerhub
+            - orb-publishing
       - orb-tools/dev-promote-prod-from-commit-subject:
           orb-name: coda/utils
-          context: orb-publishing
+          context:
+            - dockerhub
+            - orb-publishing
           publish-token-variable: ORB_PUBLISHING_TOKEN
           add-pr-comment: false
           fail-if-semver-not-indicated: true

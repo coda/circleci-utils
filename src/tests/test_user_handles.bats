@@ -5,7 +5,7 @@ setup() {
 }
 
 @test '2: Check Coda Email Exists' {
-    export CIRCLE_USERNAME="gita-v"
+    export CIRCLE_USERNAME="gita-codaio"
     export CODA_PROD_TOKEN=$CODA_PROD_TOKEN
     export CODA_CIRCLECI_USER_NAME_COL="c-HWxgJukgCs"
     export CODA_USER_EMAIL_COL="c-l3XSvkG3vB"
@@ -28,7 +28,7 @@ setup() {
 }
 
 @test '4: Check Codas Slack Handle Exists' {
-    export CIRCLE_USERNAME="gita-v"
+    export CIRCLE_USERNAME="gita-codaio"
     export CODA_PROD_TOKEN=$CODA_PROD_TOKEN
     export CODA_CIRCLECI_USER_NAME_COL="c-HWxgJukgCs"
     export CODA_USER_EMAIL_COL="c-l3XSvkG3vB"
