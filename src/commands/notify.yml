@@ -1,26 +1,5 @@
 description: Send build results to Opsgenie API, with detailed information
 parameters:
-  coda_user_roster_table_url:
-    description: |
-      Fully qualified API URL to a table containing CIRCLECI_USERNAMEs to email aliases.    Must be of the form
-      https://coda.io/apis/v1/docs/<DOCID>/tables/<TABLEID>/rows.
-    type: string
-    default: https://coda.io/apis/v1/docs/CBRzjlr8md/tables/table-37x7Jsfrqx/rows
-  coda_circleci_user_name_col:
-    description: |
-      Coda columnId of the column storing the CircleCI username in the coda_user_roster_table_url document.
-    type: string
-    default: c-HWxgJukgCs
-  coda_github_col:
-    description: |
-      Coda columnId of the column storing the full name in the coda_user_roster_table_url document.
-    type: string
-    default: c-HWxgJukgCs
-  coda_user_email_col:
-    description: |
-      Coda columnId of the column storing the Coda email in the coda_user_roster_table_url document.
-    type: string
-    default: c-l3XSvkG3vB
   endpoint:
     default: OPSGENIE_WEBHOOK
     description: Enter either your Full URL value that you copied in Opsgenie
@@ -34,33 +13,16 @@ parameters:
     default: true
     description: Success information of circleci build
     type: boolean
-  coda_prod_token:
-    default: $CODA_PROD_TOKEN
-    description: |
-      Env var of a token granted read access to the coda_user_roster_table_url document.
-    type: string
   email_domain:
     description: |
       Optional email domain for users within the workspace.   Must be specified if user aliases are not fully qualified.
     type: string
     default: coda.io
-  circle_token:
-    default: $CIRCLECI_TOKEN
-    description: |
-      Env var of a token granted read access to the CircleCI api
-    type: string
 steps:
 - run:
     name: Set variables
-    when: always
     command: |
-      echo "export CODA_PROD_TOKEN=<<parameters.coda_prod_token>>" >> "$BASH_ENV"
-      echo "export CIRCLECI_TOKEN=<<parameters.circle_token>>" >> "$BASH_ENV"
       echo "export EMAIL_DOMAIN=<<parameters.email_domain>>" >> "$BASH_ENV"
-      echo "export CODA_CIRCLECI_USER_NAME_COL=<<parameters.coda_circleci_user_name_col>>" >> "$BASH_ENV"
-      echo "export CODA_USER_EMAIL_COL=<<parameters.coda_user_email_col>>" >> $BASH_ENV
-      echo "export CODA_GITHUB_COL=<<parameters.coda_github_col>>" >> $BASH_ENV
-      echo "export CODA_USER_ROSTER_TABLE_URL=<<parameters.coda_user_roster_table_url>>" >> "$BASH_ENV"
 - run:
     name: Fetch User Information
     when: on_fail
