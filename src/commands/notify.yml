@@ -90,6 +90,11 @@ steps:
 - when:
     condition: <<parameters.on_failure>>
     steps:
+      - slack-notify-waiting-approval: 
+          slack_message: "Your job has failed"
+- when:
+    condition: <<parameters.on_failure>>
+    steps:
     - run:
         command: |
           cat /tmp/raw-webhook.json | jq '.details.outcome="failed"'  > /tmp/webhook.json

@@ -45,6 +45,11 @@ parameters:
     description: |
       Token used by Slack bot application.   Must have scopes `users:read`, `users:read.email`, and `chat:write`.
     default: ${PUSH_REMINDER_BOT_TOKEN}
+  slack_message:
+    type: string
+    description: |
+      Slack message to send 
+    default: Pending Approval for ${CIRCLE_PROJECT_REPONAME} (${CIRCLE_USERNAME})
 steps:
 - run:
     name: Set variables
@@ -67,7 +72,7 @@ steps:
               \"channel\": \"${SLACK_USER_ID}\", \
               \"attachments\": [ \
                 { \
-                  \"text\": \"Pending Approval for ${CIRCLE_PROJECT_REPONAME} (${CIRCLE_USERNAME})\", \
+                  \"text\": \"<<parameters.slack_bot_token>>\", \
                   \"fields\": [ \
                     { \
                       \"title\": \"Project\", \
