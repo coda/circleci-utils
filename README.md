@@ -2,7 +2,7 @@
 # CircleCI Utils
 
 
-[![CircleCI Build Status](https://circleci.com/gh/coda-hq/circleci-utils.svg?style=shield "CircleCI Build Status")](https://circleci.com/gh/coda-hq/circleci-utils) [![CircleCI Orb Version](https://img.shields.io/badge/endpoint.svg?url=https://badges.circleci.io/orb/coda/utils)](https://circleci.com/orbs/registry/orb/coda/utils) [![GitHub License](https://img.shields.io/badge/license-MIT-lightgrey.svg)](https://raw.githubusercontent.com/coda-hq/circleci-utils/main/LICENSE) [![CircleCI Community](https://img.shields.io/badge/community-CircleCI%20Discuss-343434.svg)](https://discuss.circleci.com/c/ecosystem/orbs)
+[![CircleCI Build Status](https://circleci.com/gh/coda/circleci-utils.svg?style=shield "CircleCI Build Status")](https://circleci.com/gh/coda/circleci-utils) [![CircleCI Orb Version](https://img.shields.io/badge/endpoint.svg?url=https://badges.circleci.io/orb/coda/utils)](https://circleci.com/orbs/registry/orb/coda/utils) [![GitHub License](https://img.shields.io/badge/license-MIT-lightgrey.svg)](https://raw.githubusercontent.com/coda/circleci-utils/main/LICENSE) [![CircleCI Community](https://img.shields.io/badge/community-CircleCI%20Discuss-343434.svg)](https://discuss.circleci.com/c/ecosystem/orbs)
 
 [Example Usage](src/examples/example.yml)
 ### How to Publish
