@@ -8,7 +8,7 @@ setup() {
     export CIRCLE_USERNAME="gita-codaio"
     export EMAIL_DOMAIN="coda.io"
     result=$(run_main)
-    [[ "$result" == *"gita@coda.io"* ]]
+    [[ "$result" == "gita@coda.io" ]]
 }
 
 @test '3: Check Coda Email DNE' {

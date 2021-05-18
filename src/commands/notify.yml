@@ -1,5 +1,10 @@
 description: Send build results to Opsgenie API, with detailed information
 parameters:
+  email_domain:
+    default: coda.io
+    description: |
+        Optional email domain for users within the workspace. Must be specified if user aliases are not fully qualified.
+    type: string
   endpoint:
     default: OPSGENIE_WEBHOOK
     description: Enter either your Full URL value that you copied in Opsgenie
@@ -13,16 +18,12 @@ parameters:
     default: true
     description: Success information of circleci build
     type: boolean
-  email_domain:
-    description: |
-      Optional email domain for users within the workspace.   Must be specified if user aliases are not fully qualified.
-    type: string
-    default: coda.io
 steps:
 - run:
-    name: Set variables
+    when: always
     command: |
-      echo "export EMAIL_DOMAIN=<<parameters.email_domain>>" >> "$BASH_ENV"
+        echo "export EMAIL_DOMAIN=<<parameters.email_domain>>" >> "$BASH_ENV"
+    name: Set variables
 - run:
     name: Fetch User Information
     when: on_fail

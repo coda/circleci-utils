@@ -3,6 +3,7 @@ set -eo pipefail
 USER_EMAIL=""
 SLACK_USER_ID=""
 GITHUB_SUFFIX="-codaio"
+EMAIL_DOMAIN="coda.io"
 # TO DO; change w/ github migration
 function run_main() {
     if [[ "$CIRCLE_USERNAME" != *"$GITHUB_SUFFIX"* ]]; then

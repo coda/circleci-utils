@@ -17,8 +17,14 @@ parameters:
     type: string
     description: |
       Token used by Slack bot application.   Must have scopes `users:read`, `users:read.email`, and `chat:write`.
+  slack_message:
+    type: string
+    description: |
+      Slack message to send 
+    default: "Pending Approval for ${CIRCLE_PROJECT_REPONAME} (${CIRCLE_USERNAME})"
 executor: default
 steps:
   - slack-notify-waiting-for-approval:
       email_domain: <<parameters.email_domain>>
       slack_bot_token: <<parameters.slack_bot_token>>
+      slack_message: <<parameters.slack_message>>
