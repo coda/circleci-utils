@@ -110,7 +110,7 @@ workflows:
           context:
             - dockerhub
             - orb-publishing
-          publish-token-variable: ORB_PUBLISHING_TOKEN
+          publish-token-variable: CIRCLECI_TOKEN
           add-pr-comment: false
           fail-if-semver-not-indicated: true
           publish-version-tag: false
