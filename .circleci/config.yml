@@ -1,5 +1,4 @@
 version: 2.1
-
 default_build_environment: &default_build_environment
   docker:
     - image: cimg/base:stable
@@ -76,6 +75,7 @@ workflows:
             - shellcheck/check
       # Publish development version of the orb.
       - orb-tools/publish-dev:
+          publish-token-variable: ORB_PUBLISHING_TOKEN
           context:
             - dockerhub
             - orb-publishing
@@ -84,6 +84,7 @@ workflows:
       # dev:${CIRCLE_SHA1:0:7} version of your orb
       - orb-tools/trigger-integration-tests-workflow:
           name: trigger-integration-dev
+          token-variable: ORB_PUBLISHING_TOKEN
           context:
             - dockerhub
             - orb-publishing
@@ -97,19 +98,23 @@ workflows:
           context:
             - dockerhub
             - orb-publishing
+            - util
       - integration-test-slack:
           context:
             - dockerhub
             - orb-publishing
+            - util
       - utils/cancel-older-awaiting-approvals:
           context:
             - dockerhub
             - orb-publishing
+            - util
       - orb-tools/dev-promote-prod-from-commit-subject:
           orb-name: coda/utils
           context:
             - dockerhub
             - orb-publishing
+            - util
           publish-token-variable: ORB_PUBLISHING_TOKEN
           add-pr-comment: false
           fail-if-semver-not-indicated: true
