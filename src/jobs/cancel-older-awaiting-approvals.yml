@@ -13,6 +13,8 @@ parameters:
     type: string
     default: gh
 executor: default
+context:
+  - util
 steps:
   - cancel-older-awaiting-approvals:
       circle_token: << parameters.circle_token >>

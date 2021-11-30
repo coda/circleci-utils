@@ -5,7 +5,12 @@ default_build_environment: &default_build_environment
       auth:
         username: codainternaltools
         password: $DOCKERHUB_PASSWORD
-
+python_build: &python_build
+    docker:
+      - image: cimg/python:3.10.0
+        auth:
+          username: codainternaltools
+          password: $DOCKERHUB_PASSWORD
 orbs:
   utils: coda/utils@<<pipeline.parameters.dev-orb-version>>
   orb-tools: circleci/orb-tools@10.0.3
@@ -42,7 +47,7 @@ jobs:
     steps:
       - checkout
       - utils/slack-notify-waiting-for-approval:
-          slack_bot_token: ${PUSH_REMINDER_BOT_TOKEN}
+          slack_bot_token: ${SLACK_BOT_TOKEN}
 
   integration-test-cancel-older-jobs:
     <<: *default_build_environment
@@ -57,10 +62,10 @@ workflows:
       - orb-tools/pack:
           context:
             - dockerhub
-      - shellcheck/check:
+      - utils/testing:
           context:
+            - util
             - dockerhub
-          dir: ./src/scripts
       - bats/run:
           context:
             - dockerhub
@@ -72,7 +77,7 @@ workflows:
           requires:
             - orb-tools/pack
             - bats/run
-            - shellcheck/check
+            # - shellcheck/check
       # Publish development version of the orb.
       - orb-tools/publish-dev:
           publish-token-variable: ORB_PUBLISHING_TOKEN
