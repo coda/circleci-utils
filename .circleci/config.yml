@@ -13,7 +13,8 @@ python_build: &python_build
           password: $DOCKERHUB_PASSWORD
 orbs:
   utils: coda/utils@<<pipeline.parameters.dev-orb-version>>
-  orb-tools: circleci/orb-tools@10.0.3
+  circleci-cli: circleci/circleci-cli@0.1.9
+  orb-tools: circleci/orb-tools@10.1.0
   bats: circleci/bats@1.0
   shellcheck: circleci/shellcheck@2.0
   slack: circleci/slack@4.5.0
@@ -49,76 +50,113 @@ jobs:
       - utils/slack-notify-waiting-for-approval:
           slack_bot_token: ${SLACK_BOT_TOKEN}
 
+  pack-files:
+    <<: *python_build
+    parameters:
+      publish-token-variable:
+        type: env_var_name
+        default: ORB_PUBLISHING_TOKEN
+        description: publishing token
+    steps:
+      - checkout
+      - run: 
+          command: make wrap-python-files
+          name: Add shell script around python files
+      - circleci-cli/install
+      - orb-tools/pack
+      - orb-tools/publish:
+          orb-ref: coda/utils@dev:alpha
+          token-variable: <<parameters.publish-token-variable>>
+
+  publish-major:
+    <<: *python_build
+    parameters:
+      publish-token-variable:
+        type: env_var_name
+        default: ORB_PUBLISHING_TOKEN
+        description: publishing token
+    steps:
+      - checkout
+      - run: 
+          command: make wrap-python-files
+          name: Add shell script around python files
+      - circleci-cli/install
+      - orb-tools/pack
+      - orb-tools/publish:
+          orb-ref: coda/utils@dev:ci_publish
+          token-variable: <<parameters.publish-token-variable>>
+      - orb-tools/increment:
+          token-variable: <<parameters.publish-token-variable>>
+          segment: major 
+          orb-ref: coda/utils@dev:ci_publish
+
+  publish-minor:
+    <<: *python_build
+    parameters:
+      publish-token-variable:
+        type: env_var_name
+        default: ORB_PUBLISHING_TOKEN
+        description: publishing token
+    steps:
+      - checkout
+      - run: 
+          command: make wrap-python-files
+          name: Add shell script around python files
+      - circleci-cli/install
+      - orb-tools/pack
+      - orb-tools/publish:
+          orb-ref: coda/utils@dev:ci_publish
+          token-variable: <<parameters.publish-token-variable>>
+      - orb-tools/increment:
+          token-variable: <<parameters.publish-token-variable>>
+          segment: minor 
+          orb-ref: coda/utils@dev:ci_publish
 
 workflows:
-  test-pack:
-    unless: << pipeline.parameters.run-integration-tests >>
+  publish-dev:
     jobs:
-      - orb-tools/pack:
+      - pack-files:
           context:
             - dockerhub
-      - bats/run:
-          context:
-            - dockerhub
-          path: ./src/tests
-      - hold-for-dev-publish:
-          context:
-            - dockerhub
+            - orb-publishing
+          filters:
+            branches:
+              ignore: main
+          publish-token-variable: ORB_PUBLISHING_TOKEN
+  publish-prod:
+    jobs:
+      - minor-semver:
           type: approval
-          requires:
-            - orb-tools/pack
-            - bats/run
-            # - shellcheck/check
-      # Publish development version of the orb.
-      - orb-tools/publish-dev:
-          publish-token-variable: ORB_PUBLISHING_TOKEN
-          context:
-            - dockerhub
-            - orb-publishing
-          orb-name: coda/utils
-          requires: [hold-for-dev-publish]
-      # dev:${CIRCLE_SHA1:0:7} version of your orb
-      - orb-tools/trigger-integration-tests-workflow:
-          name: trigger-integration-dev
-          token-variable: ORB_PUBLISHING_TOKEN
-          context:
-            - dockerhub
-            - orb-publishing
-          requires:
-            - orb-tools/publish-dev
-
-  integration-test_deploy:
-    when: << pipeline.parameters.run-integration-tests >>
-    jobs:
-      - integration-test-notify:
-          context:
-            - dockerhub
-            - orb-publishing
-            - util
-      - integration-test-slack:
-          context:
-            - dockerhub
-            - orb-publishing
-            - util
-      - utils/cancel-older-awaiting-approvals:
-          context:
-            - dockerhub
-            - orb-publishing
-            - util
-      - orb-tools/dev-promote-prod-from-commit-subject:
-          orb-name: coda/utils
+          filters:
+            branches:
+              only:
+                - main
+      - major-semver:
+          type: approval
+          filters:
+            branches:
+              only:
+                - main
+      - publish-major:
           context:
             - dockerhub
             - orb-publishing
             - util
           publish-token-variable: ORB_PUBLISHING_TOKEN
-          add-pr-comment: false
-          fail-if-semver-not-indicated: true
-          publish-version-tag: false
           requires:
-            - integration-test-notify
-            - integration-test-slack
-            - integration-test-cancel-older-jobs
+            - major-semver
+          filters:
+            branches:
+              only:
+                - main
+      - publish-minor:
+          context:
+            - dockerhub
+            - orb-publishing
+            - util
+          publish-token-variable: ORB_PUBLISHING_TOKEN
+          requires:
+            - minor-semver
           filters:
             branches:
               only:

@@ -1,10 +1,3 @@
-cat > Pipfile <<EOF
-[packages]
-requests = "*"
-
-EOF
-pipenv install
-pipenv run python3 - << EOF
 import os
 import requests
 
@@ -55,4 +48,3 @@ for item in current_workflow['items']:
             # requests.post(cancel_url)
         except requests.exceptions.RequestException as e:  # This is the correct syntax
             raise SystemExit(e)       
-EOF

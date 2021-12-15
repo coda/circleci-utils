@@ -18,9 +18,21 @@ steps:
     name: Set variables
     command: |
       echo "export EMAIL_DOMAIN=<<parameters.email_domain>>" >> "$BASH_ENV"
+    when: always
+- run:
+    name: Check if env vars needed for slack msg are missing
+    command: |
+      if [ -z "$SLACK_USER_ID" ]; then \
+        echo "export SLACK_USER_TAG=Slack handle not found" >> "$BASH_ENV"
+      fi; 
+      if [ -z "$OPSGENIE_URL" ]; then \
+        echo "export OPSGENIE_URL=https://krypton.app.opsgenie.com" >> "$BASH_ENV"
+      fi; 
+    when: always
 - run:
     name: Fetch User Information from Look Up Table
     command: <<include(scripts/fetch_user_handles.sh)>>
+    when: always
 - slack/notify:
     channel: << parameters.channel >>
     event: fail

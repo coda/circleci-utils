@@ -1,10 +1,12 @@
 {
     "message": "[CircleCI] [#\/(${CIRCLE_PREVIOUS_BUILD_NUM})]: workflow \/(${CIRCLE_BRANCH}) stage \/(${CIRCLE_STAGE}) job \/(${CIRCLE_JOB})",
     "alias": "${ALIAS}",
-    "description":"See \/(${CIRCLE_BUILD_URL}) for more details. ",
+    "description":"Compare with last passing commit: '$DIFF_URL'",
     "username": "${CIRCLE_USERNAME}",
     "details": {
       "build_number":"${CIRCLE_PREVIOUS_BUILD_NUM}",
       "build_url": "${CIRCLE_BUILD_URL}",
-    }
+      "user": "$USER_EMAIL"
+    },
+    "reporters":[{"username": "'$USER_EMAIL'", "type": "user"}, {"name": "ci_alerts", "type": "team"}]
 }

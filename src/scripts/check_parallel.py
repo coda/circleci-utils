@@ -1,10 +1,3 @@
-cat > Pipfile <<EOF
-[packages]
-requests = "*"
-
-EOF
-pipenv install
-pipenv run python3 - << EOF
 import os
 import requests
 import logging
@@ -33,7 +26,7 @@ def ensure_parallel_job_success():
         REPORT=1
 
 
-if os.getenv('STATUS') == 'success' and int(os.getenv('CIRCLE_NODE_TOTAL', 0)) > 1:
+if os.getenv('STATUS') and int(os.getenv('CIRCLE_NODE_TOTAL', 0)) > 1:
     ensure_parallel_job_success()
 else:
     REPORT=1
@@ -41,9 +34,7 @@ else:
 BASH_ENV = os.getenv('BASH_ENV')
 
 env_file = open(BASH_ENV, "a")
-env_file.write(f"export REPORT={REPORT}")
+env_file.write(f"export REPORT={REPORT}\n")
 env_file.close()
 
 print(os.getenv('REPORT'))
-
-EOF

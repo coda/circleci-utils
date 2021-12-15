@@ -1,10 +1,3 @@
-cat > Pipfile <<EOF
-[packages]
-requests = "*"
-
-EOF
-pipenv install
-pipenv run python3 - << EOF
 """Use the CircleCI v1.1 API to determine the Last Known Good build's git hash."""
 from __future__ import print_function
 
@@ -63,14 +56,12 @@ def get_latest_hash():
 git_hash = get_latest_hash()
 if not git_hash:
     print('Failed to find a LKG build')
-    sys.exit(1)
-    
-DIFF_URL = f"https://github.com/{CIRCLE_PROJECT_USERNAME}/{CIRCLE_PROJECT_REPONAME}/compare/{git_hash}...{CIRCLE_SHA1}"
+    DIFF_URL = f"https://github.com/{CIRCLE_PROJECT_USERNAME}/{CIRCLE_PROJECT_REPONAME}/commit/{CIRCLE_SHA1}"
+else: 
+    DIFF_URL = f"https://github.com/{CIRCLE_PROJECT_USERNAME}/{CIRCLE_PROJECT_REPONAME}/compare/{git_hash}...{CIRCLE_SHA1}"
 
 BASH_ENV = os.getenv('BASH_ENV')
 
 env_file = open(BASH_ENV, "a")
-env_file.write(f"export DIFF_URL={DIFF_URL}")
+env_file.write(f"export DIFF_URL={DIFF_URL}\n")
 env_file.close()
-
-EOF
