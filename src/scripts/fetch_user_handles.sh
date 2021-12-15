@@ -25,6 +25,8 @@ function run_main() {
     # need to export for rest of steps to pick it up
     echo "export USER_EMAIL=${USER_EMAIL}" >> "$BASH_ENV"
     echo "export SLACK_USER_ID=${SLACK_USER_ID}" >> "$BASH_ENV"
+    echo "export SLACK_USER_TAG='<@${SLACK_USER_ID}>'" >> "$BASH_ENV"
+
 }
 # Will not run if sourced for bats.
 ORB_TEST_ENV="bats-core"

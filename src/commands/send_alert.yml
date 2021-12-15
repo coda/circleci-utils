@@ -1,0 +1,131 @@
+description: Send build results to Opsgenie API, with detailed information
+parameters:
+  email_domain:
+    default: coda.io
+    description: |
+        Optional email domain for users within the workspace. Must be specified if user aliases are not fully qualified.
+    type: string
+  endpoint:
+    default: OPSGENIE_WEBHOOK
+    description: Enter either your Full URL value that you copied in Opsgenie
+      Integration Page
+    type: env_var_name
+  send_slack_failure:
+    default: false
+    description: Send slack notification for failures; default false
+    type: boolean
+  send_slack_success:
+    default: false
+    description: Send slack notification for success; default false
+    type: boolean
+  channel: 
+    description: slack channel ID to send the message
+    type: string 
+    default: C02PCQKU6SW
+  REPORTING: 
+    description: slack channel ID to send the message
+    type: string 
+    default: $REPORT
+steps:
+- run:
+    command: |
+        echo "export STATUS=success" >> "$BASH_ENV"
+    name: Set variables
+    when: on_success
+- run:
+    command: |
+        echo "export STATUS=failure" >> "$BASH_ENV"
+    name: Set variables
+    when: on_fail
+- run:
+    name: Check if in parallel
+    command: <<include(scripts/check_parallel_py.sh)>>
+    when: always 
+- when:
+    condition: <<parameters.REPORTING>>
+    steps:
+      - run:
+          command: |
+              echo "export EMAIL_DOMAIN=<<parameters.email_domain>>" >> "$BASH_ENV"
+              echo "export ALIAS=${CIRCLE_PROJECT_REPONAME}/${CIRCLE_BRANCH}#${CIRCLE_JOB}" >> "$BASH_ENV"
+              echo "export URI_ALIAS=${CIRCLE_PROJECT_REPONAME}%2F${CIRCLE_BRANCH}%23${CIRCLE_JOB}" >> "$BASH_ENV"
+          name: Set variables
+          when: always
+      - run:
+          command: |
+            echo '{}' | jq '{
+              "message": "[CircleCI] [#\(env.CIRCLE_PREVIOUS_BUILD_NUM)]: workflow \(env.CIRCLE_BRANCH) stage \(env.CIRCLE_STAGE) job \(env.CIRCLE_JOB)",
+              "alias": env.ALIAS,
+              "description":"See \(env.CIRCLE_BUILD_URL) for more details. ",
+              "username": env.CIRCLE_USERNAME,
+              "details": {
+                "build_number":env.CIRCLE_PREVIOUS_BUILD_NUM,
+                "build_url": env.CIRCLE_BUILD_URL,
+                }
+            }' > /tmp/raw-webhook.json
+          name: Bundle build info into webhook payload
+          when: always
+      - run:
+          name: Fetch User Information
+          command: <<include(scripts/fetch_user_handles.sh)>>
+          when: on_fail
+      - run:
+          name: Calculate LKG Diff Git URL
+          command: <<include(scripts/get_lkg_hash_py.sh)>>
+          when: on_fail
+      - run:
+          name: PRINT DIFF URL 
+          command: echo $DIFF_URL
+      - run:
+        # Can not evaluate bash variables on ci conditional; must set inside command
+          command: |
+            if [ -n "${USER_EMAIL}" ]; then
+              cat /tmp/raw-webhook.json | jq --arg USER_EMAIL $USER_EMAIL \
+              '.responders += [{"username": "'$USER_EMAIL'", "type": "user"}, {"name": "ci_alerts", "type": "team"}]' | \
+              jq --arg USER_EMAIL $USER_EMAIL '.details.user = $USER_EMAIL'> /tmp/webhook_temp.json
+              mv /tmp/webhook_temp.json /tmp/raw-webhook.json
+            fi
+          name: Add User Email to Payload
+          when: on_fail
+      - run:
+          command: |
+            if [ -n "${DIFF_URL}" ]; then
+              cat /tmp/raw-webhook.json | jq --arg DIFF_URL $DIFF_URL '.description +=  " Compare with last passing commit: '$DIFF_URL'"' > /tmp/webhook_temp.json
+              mv /tmp/webhook_temp.json /tmp/raw-webhook.json
+            fi
+          name: Add LKG Diff Girl URL to Payload
+          when: on_fail
+      - run:
+          command: |
+            cat /tmp/raw-webhook.json | jq '.details.outcome="failed"'  > /tmp/webhook.json
+            mv /tmp/webhook.json /tmp/raw-webhook.json
+            curl -X POST -H"Content-Type:application/json" -H "Authorization: GenieKey ${OPS_GENIE_API_KEY}" -d @/tmp/raw-webhook.json https://api.opsgenie.com/v2/alerts
+            response=$(curl -X GET -H"Content-Type:application/json" -H "Authorization: GenieKey ${OPS_GENIE_API_KEY}" "https://api.opsgenie.com/v2/alerts/${URI_ALIAS}?identifierType=alias")
+            REQUEST_ID=$(echo $response | jq -r '.data.id')
+            OPSGENIE_URL="https://krypton.app.opsgenie.com/alert/detail/${REQUEST_ID}"
+            echo "export OPSGENIE_URL=$OPSGENIE_URL" >> "$BASH_ENV"
+          name: Post Opsgenie Failure Webhook
+          when: on_fail
+      - run:
+          command: |
+            cat /tmp/raw-webhook.json | jq '.details.outcome="success"'  > /tmp/webhook.json
+          name: Add success into payload
+          when: on_success
+      - run:
+          command: |
+            curl -X POST -H"Content-Type:application/json" -H "Authorization: GenieKey ${OPS_GENIE_API_KEY}" -d @/tmp/webhook.json "https://api.opsgenie.com/v2/alerts/${URI_ALIAS}/close?identifierType=alias"
+          name: Post Opsgenie Success Webhook
+          when: on_success
+- when:
+    condition:
+      and:
+        - <<parameters.REPORTING>>
+        - or:
+          - << parameters.send_slack_failure >>
+          - << parameters.send_slack_success >>
+    steps:
+      - slack_notify_failure:
+          slack_tag: $SLACK_USER_TAG
+          channel: << parameters.channel >>
+
+

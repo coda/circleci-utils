@@ -9,3 +9,6 @@ description: >
 
 display:
   source_url: "https://github.com/coda/circleci-utils"
+  
+orbs:
+  slack: circleci/slack@4.5.0

@@ -32,8 +32,14 @@ To manually pack your `orb.yml`, you can run `circleci orb pack .  > orb.yml` at
 ```
 cd src
 circleci orb pack .  > orb.yml
-circleci orb publish orb.yml coda/utils@dev:<your_branch_name>
+circleci orb publish orb.yml coda/utils@dev:<your_branch_name> --token <orb publishing token>
 ```
+
+## Orb Authoring Tips:
+- scripts are files that can be inlined into the yaml file using the following format `command: <<include(scripts/greet.sh)>>`. scripts must be logical code that can be executed in a CircleCI YAML file. 
+-- commands[https://circleci.com/docs/2.0/reusing-config/#authoring-reusable-commands] may only be used as part of the sequence under steps in a job. commands must use the same 
+
+
 
 
 ## Testing

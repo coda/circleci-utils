@@ -16,6 +16,7 @@ orbs:
   orb-tools: circleci/orb-tools@10.0.3
   bats: circleci/bats@1.0
   shellcheck: circleci/shellcheck@2.0
+  slack: circleci/slack@4.5.0
 
 # Pipeline Parameters
 ## These parameters are used internally by orb-tools.
@@ -39,8 +40,7 @@ jobs:
     <<: *default_build_environment
     steps:
       - checkout
-      - utils/notify:
-          on_success: true
+      - utils/notify
 
   integration-test-slack:
     <<: *default_build_environment
@@ -49,11 +49,6 @@ jobs:
       - utils/slack-notify-waiting-for-approval:
           slack_bot_token: ${SLACK_BOT_TOKEN}
 
-  integration-test-cancel-older-jobs:
-    <<: *default_build_environment
-    steps:
-      - checkout
-      - utils/cancel-older-awaiting-approvals
 
 workflows:
   test-pack:
@@ -61,10 +56,6 @@ workflows:
     jobs:
       - orb-tools/pack:
           context:
-            - dockerhub
-      - utils/testing:
-          context:
-            - util
             - dockerhub
       - bats/run:
           context:
@@ -127,7 +118,7 @@ workflows:
           requires:
             - integration-test-notify
             - integration-test-slack
-            - utils/cancel-older-awaiting-approvals
+            - integration-test-cancel-older-jobs
           filters:
             branches:
               only:

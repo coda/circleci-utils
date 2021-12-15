@@ -6,15 +6,13 @@ parameters:
       Optional email domain for users within the workspace.   Must be specified if user aliases are not fully qualified.
     type: string
     default: coda.io
-  slack_bot_token:
+  slack_tag:
+    description: slack user to mention
     type: string
-    description: |
-      Token used by Slack bot application.   Must have scopes `users:read`, `users:read.email`, and `chat:write`.
-    default: ${SLACK_BOT_TOKEN}
-  slack_message:
-    default: "Pending Approval for ${CIRCLE_PROJECT_REPONAME} ${CIRCLE_USERNAME}"
-    description: Slack Message to send
-    type: string
+  channel: 
+    description: slack channel ID to send the message
+    type: string 
+    default: C02PCQKU6SW
 steps:
 - run:
     name: Set variables
@@ -24,10 +22,12 @@ steps:
     name: Fetch User Information from Look Up Table
     command: <<include(scripts/fetch_user_handles.sh)>>
 - slack/notify:
-    channel: $SLACK_USER_ID
-    event: pass
-    custom: <<include(message_templates/on_hold.json)>>
-- slack/notify:
-    channel: $SLACK_USER_ID
+    channel: << parameters.channel >>
     event: fail
     custom: <<include(message_templates/fail.json)>>
+    mentions: <<parameters.slack_tag>>
+- slack/notify:
+    channel: <<parameters.channel>>
+    event: pass
+    custom: <<include(message_templates/success.json)>>
+    mentions: <<parameters.slack_tag>>
