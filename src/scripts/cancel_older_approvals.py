@@ -44,7 +44,6 @@ for item in current_workflow['items']:
         print(f"Canceling older workflow awaiting manual approval: {workflow_id}")
         cancel_url = f"{BASE_URL}workflow/{workflow_id}/cancel?{TOKEN}"
         try:
-            print(cancel_url)
-            # requests.post(cancel_url)
+            requests.post(cancel_url)
         except requests.exceptions.RequestException as e:  
             raise SystemExit(e)       

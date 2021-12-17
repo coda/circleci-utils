@@ -13,7 +13,7 @@ parameters:
   channel: 
     description: slack channel ID to send the message
     type: string 
-    default: C02PCQKU6SW
+    default: C02GSTENV19
 steps:
 - run:
     name: Set variables
