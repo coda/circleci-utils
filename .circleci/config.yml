@@ -39,11 +39,13 @@ jobs:
       - run: 
           command: make wrap-python-files
           name: Add shell script around python files
-      - utils/send_alert
+      - utils/send_alert:
+          channel: C02PCQKU6SW
       - utils/slack-notify-waiting-for-approval:
           slack_bot_token: ${SLACK_BOT_TOKEN}
       - utils/slack_notify_status:
           slack_tag: "Nones"
+          channel: C02PCQKU6SW
 
   publish-dev-version:
     <<: *python_build
