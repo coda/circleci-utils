@@ -22,10 +22,6 @@ orbs:
 # Pipeline Parameters
 ## These parameters are used internally by orb-tools.
 parameters:
-  run-integration-tests:
-    description: An internal flag to prevent integration test from running before a development version has been created.
-    type: boolean
-    default: false
   dev-orb-version:
     description: >
       The development version of the orb to test.
@@ -37,18 +33,7 @@ commands:
 
 
 jobs:
-  integration-test-notify:
-    <<: *default_build_environment
-    steps:
-      - checkout
-      - utils/notify
 
-  integration-test-slack:
-    <<: *default_build_environment
-    steps:
-      - checkout
-      - utils/slack-notify-waiting-for-approval:
-          slack_bot_token: ${SLACK_BOT_TOKEN}
   test:
     <<: *python_build
     steps:
@@ -59,7 +44,7 @@ jobs:
       - utils/send_alert
       - utils/slack-notify-waiting-for-approval:
           slack_bot_token: ${SLACK_BOT_TOKEN}
-      - utils/slack_notify_failure:
+      - utils/slack_notify_status:
           slack_tag: "Nones"
 
   publish-dev-version:
@@ -94,13 +79,10 @@ jobs:
           name: Add shell script around python files
       - circleci-cli/install
       - orb-tools/pack
-      - orb-tools/publish:
-          orb-ref: coda/utils@dev:ci_publish
-          token-variable: <<parameters.publish-token-variable>>
       - orb-tools/increment:
           token-variable: <<parameters.publish-token-variable>>
           segment: major 
-          orb-ref: coda/utils@dev:ci_publish
+          orb-ref: coda/utils@dev:alpha
 
   publish-minor:
     <<: *python_build
@@ -115,25 +97,14 @@ jobs:
           command: make wrap-python-files
           name: Add shell script around python files
       - circleci-cli/install
-      - orb-tools/pack
-      - orb-tools/publish:
-          orb-ref: coda/utils@dev:ci_publish
-          token-variable: <<parameters.publish-token-variable>>
       - orb-tools/increment:
           token-variable: <<parameters.publish-token-variable>>
           segment: minor 
-          orb-ref: coda/utils@dev:ci_publish
+          orb-ref: coda/utils@dev:alpha
 
 workflows:
   publish-dev:
     jobs:
-      - test:
-          context:
-            - dockerhub
-            - orb-publishing
-          filters:
-            branches:
-              ignore: main
       - publish-dev-version:
           context:
             - dockerhub
@@ -142,8 +113,16 @@ workflows:
             branches:
               ignore: main
           publish-token-variable: ORB_PUBLISHING_TOKEN
+      - test:
+          context:
+            - dockerhub
+            - orb-publishing
+            - util
+          filters:
+            branches:
+              ignore: main
           requires:
-            - test
+            - publish-dev-version
   publish-prod:
     jobs:
       - minor-semver:

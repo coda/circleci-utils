@@ -7,7 +7,8 @@ OPSGENIE_BODY = json.loads(os.path.expandvars(os.getenv('OPSGENIE_BODY')))
 URI_ALIAS = os.getenv('URI_ALIAS')
 OPS_GENIE_API_KEY = os.getenv('OPS_GENIE_API_KEY')
 BASH_ENV = os.getenv('BASH_ENV')
-if STATUS==1:
+print(STATUS)
+if STATUS:
     requests.post(f"https://api.opsgenie.com/v2/alerts/{URI_ALIAS}/close?identifierType=alias",
             headers={
             'Authorization': f'GenieKey {OPS_GENIE_API_KEY}',

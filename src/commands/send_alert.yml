@@ -71,7 +71,7 @@ steps:
           - << parameters.send_slack_failure >>
           - << parameters.send_slack_success >>
     steps:
-      - slack_notify_failure:
+      - slack_notify_status:
           slack_tag: $SLACK_USER_TAG
           channel: << parameters.channel >>
 

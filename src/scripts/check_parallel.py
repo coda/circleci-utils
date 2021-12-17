@@ -43,5 +43,3 @@ BASH_ENV = os.getenv('BASH_ENV')
 env_file = open(BASH_ENV, "a")
 env_file.write(f"export REPORT={REPORT}\n")
 env_file.close()
-
-print(os.getenv('REPORT'))

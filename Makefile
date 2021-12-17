@@ -9,4 +9,15 @@ wrap-python-files:
 		fi; \
 	done; \
 		
+.PHONY: 
+rewrap-py-files:
+	$(MAKE) delete-python-wrapped-files 
+	$(MAKE) wrap-python-files
 
+.PHONY: delete-python-wrapped-files 
+delete-python-wrapped-files: 
+	for f in $(shell ls ${ROOTDIR}/src/scripts); do \
+		if [[ $$f == *_py.sh ]]; then \
+			rm ${ROOTDIR}/src/scripts/$$f; \
+		fi; \
+	done; \
