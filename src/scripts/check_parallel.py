@@ -8,28 +8,35 @@ CIRCLE_BRANCH = os.getenv('CIRCLE_BRANCH')
 CIRCLE_WORKFLOW_JOB_ID = os.getenv('CIRCLE_WORKFLOW_JOB_ID')
 
 def ensure_parallel_job_success():
+    CIRCLE_NODE_INDEX = os.getenv('CIRCLE_NODE_INDEX')
+
     url = f'https://circleci.com/api/v2/project/gh/{CIRCLE_PROJECT_USERNAME}/{CIRCLE_PROJECT_REPONAME}/job/{CIRCLE_WORKFLOW_JOB_ID}'
     headers = headers = {'Circle-Token': CIRCLECI_TOKEN}
     try:
         response = requests.get(url, headers=headers)
         response.raise_for_status()
-        failed_jobs = list(filter(lambda job: job["status"] == "failed", response.json()["parallel_runs"]))
+        # if a previous job has failed; then do not report 
+        # the last successful job will report success
+        # the first failure will report failure
+        failed_jobs = list(filter(lambda job: job["status"] == "failed" and job["index"] != CIRCLE_NODE_INDEX, response.json()["parallel_runs"]))
+        
     except requests.exceptions.HTTPError as err:
         logging.warning(err)
         logging.warning(response.json())
 
     if failed_jobs:
-        logging.info("At least one parallel job failed -- bailing out.")
-        REPORT=0
+        logging.info("At least one previous failure has been reported")
+        return 0
 
     else:
-        REPORT=1
+        return 1
 
 
-if os.getenv('STATUS') and int(os.getenv('CIRCLE_NODE_TOTAL', 0)) > 1:
-    ensure_parallel_job_success()
-else:
-    REPORT=1
+if int(os.getenv('CIRCLE_NODE_TOTAL', 0)) > 1:
+    REPORT = ensure_parallel_job_success()
+else: 
+    REPORT = 1
+    
 
 BASH_ENV = os.getenv('BASH_ENV')
 

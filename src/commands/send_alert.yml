@@ -28,16 +28,6 @@ parameters:
     default: $REPORT
 steps:
 - run:
-    command: |
-        echo "export STATUS=1" >> "$BASH_ENV"
-    name: Set variables
-    when: on_success
-- run:
-    command: |
-        echo "export STATUS=0" >> "$BASH_ENV"
-    name: Set variables
-    when: on_fail
-- run:
     name: Check if in parallel
     command: <<include(scripts/check_parallel_py.sh)>>
     when: always 
@@ -60,11 +50,19 @@ steps:
           command: <<include(scripts/get_lkg_hash_py.sh)>>
           when: on_fail
       - run:
-          name: Send OpsGenie Alert
+          name: Send OpsGenie Failure Alert
           command: <<include(scripts/opsgenie_alert_py.sh)>>
           environment:
-              OPSGENIE_BODY: <<include(message_templates/opsgenie.json)>>
-          when: always
+              OPSGENIE_BODY: <<include(message_templates/opsgenie_failure.json)>>
+              STATUS: 0
+          when: on_fail
+      - run:
+          name: Send OpsGenie Success Alert
+          command: <<include(scripts/opsgenie_alert_py.sh)>>
+          environment:
+              OPSGENIE_BODY: <<include(message_templates/opsgenie_success.json)>>
+              STATUS: 1
+          when: on_success          
 - when:
     condition:
       and:

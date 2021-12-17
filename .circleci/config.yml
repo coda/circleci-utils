@@ -49,8 +49,20 @@ jobs:
       - checkout
       - utils/slack-notify-waiting-for-approval:
           slack_bot_token: ${SLACK_BOT_TOKEN}
+  test:
+    <<: *python_build
+    steps:
+      - checkout
+      - run: 
+          command: make wrap-python-files
+          name: Add shell script around python files
+      - utils/send_alert
+      - utils/slack-notify-waiting-for-approval:
+          slack_bot_token: ${SLACK_BOT_TOKEN}
+      - utils/slack_notify_failure:
+          slack_tag: "Nones"
 
-  pack-files:
+  publish-dev-version:
     <<: *python_build
     parameters:
       publish-token-variable:
@@ -115,7 +127,14 @@ jobs:
 workflows:
   publish-dev:
     jobs:
-      - pack-files:
+      - test:
+          context:
+            - dockerhub
+            - orb-publishing
+          filters:
+            branches:
+              ignore: main
+      - publish-dev-version:
           context:
             - dockerhub
             - orb-publishing
@@ -123,6 +142,8 @@ workflows:
             branches:
               ignore: main
           publish-token-variable: ORB_PUBLISHING_TOKEN
+          requires:
+            - test
   publish-prod:
     jobs:
       - minor-semver:

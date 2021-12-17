@@ -15,7 +15,7 @@ current_wf_url = f'{BASE_URL}/workflow/{CIRCLE_WORKFLOW_ID}?{TOKEN}'
 try:
     print(current_wf_url)
     current_workflow = requests.get(current_wf_url).json()
-except requests.exceptions.RequestException as e:  # This is the correct syntax
+except requests.exceptions.RequestException as e:  
     raise SystemExit(e)
 print(current_workflow)
 current_wf_created_timestamp = current_workflow['created_at']
@@ -27,7 +27,7 @@ try:
     print("Pipeline URL: "+ pipeline_url)
     print()
     current_workflow = requests.get(pipeline_url).json()
-except requests.exceptions.RequestException as e:  # This is the correct syntax
+except requests.exceptions.RequestException as e:  
     raise SystemExit(e)
 
 for item in current_workflow['items']:
@@ -37,7 +37,7 @@ for item in current_workflow['items']:
         response = requests.get(workflow_url).json()
         workflow = response['items'][0]
         workflow_id, workflow_status, workflow_creation_timestamp = workflow['id'], workflow['status'], workflow['created_at']
-    except requests.exceptions.RequestException as e:  # This is the correct syntax
+    except requests.exceptions.RequestException as e: 
         raise SystemExit(e)
     print(f"Workflow data: {workflow_id}, {workflow_status}, {workflow_creation_timestamp}")
     if (workflow_creation_timestamp < current_wf_created_timestamp and workflow_status == "on_hold"):
@@ -46,5 +46,5 @@ for item in current_workflow['items']:
         try:
             print(cancel_url)
             # requests.post(cancel_url)
-        except requests.exceptions.RequestException as e:  # This is the correct syntax
+        except requests.exceptions.RequestException as e:  
             raise SystemExit(e)       

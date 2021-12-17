@@ -6,7 +6,9 @@
     "details": {
       "build_number":"${CIRCLE_PREVIOUS_BUILD_NUM}",
       "build_url": "${CIRCLE_BUILD_URL}",
-      "user": "$USER_EMAIL"
+      "user": "$USER_EMAIL",
+      "outcome": "failed"
+
     },
     "reporters":[{"username": "'$USER_EMAIL'", "type": "user"}, {"name": "ci_alerts", "type": "team"}]
 }

@@ -7,12 +7,7 @@ OPSGENIE_BODY = json.loads(os.path.expandvars(os.getenv('OPSGENIE_BODY')))
 URI_ALIAS = os.getenv('URI_ALIAS')
 OPS_GENIE_API_KEY = os.getenv('OPS_GENIE_API_KEY')
 BASH_ENV = os.getenv('BASH_ENV')
-print(STATUS)
-if STATUS==0:
-    OPSGENIE_BODY['details']['outcome'] = 'success'
-    OPSGENIE_BODY['user'] = "CI Orb"
-    OPSGENIE_BODY['source'] = "CI Orb"
-    OPSGENIE_BODY['note'] = "Succesful pass: close alert"
+if STATUS==1:
     requests.post(f"https://api.opsgenie.com/v2/alerts/{URI_ALIAS}/close?identifierType=alias",
             headers={
             'Authorization': f'GenieKey {OPS_GENIE_API_KEY}',
@@ -23,7 +18,6 @@ if STATUS==0:
     OPSGENIE_URL = f"https://krypton.app.opsgenie.com"
     print(OPSGENIE_BODY)
 else:
-    OPSGENIE_BODY['details']['outcome'] = 'failed'
     requests.post("https://api.opsgenie.com/v2/alerts",
             headers={
             'Authorization': f'GenieKey {OPS_GENIE_API_KEY}',
