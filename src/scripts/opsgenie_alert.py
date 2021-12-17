@@ -8,7 +8,11 @@ URI_ALIAS = os.getenv('URI_ALIAS')
 OPS_GENIE_API_KEY = os.getenv('OPS_GENIE_API_KEY')
 BASH_ENV = os.getenv('BASH_ENV')
 print(STATUS)
-if STATUS:
+print(bool(STATUS))
+print(bool(int(STATUS)))
+
+if bool(int(STATUS)):
+    print("Success")
     requests.post(f"https://api.opsgenie.com/v2/alerts/{URI_ALIAS}/close?identifierType=alias",
             headers={
             'Authorization': f'GenieKey {OPS_GENIE_API_KEY}',
@@ -19,6 +23,7 @@ if STATUS:
     OPSGENIE_URL = f"https://krypton.app.opsgenie.com"
     print(OPSGENIE_BODY)
 else:
+    print("Failing")
     requests.post("https://api.opsgenie.com/v2/alerts",
             headers={
             'Authorization': f'GenieKey {OPS_GENIE_API_KEY}',

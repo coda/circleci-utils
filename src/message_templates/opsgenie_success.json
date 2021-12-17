@@ -4,7 +4,7 @@
     "description":"Compare with last passing commit: '$DIFF_URL'",
     "username": "${CIRCLE_USERNAME}",
     "user": "CI Orb",
-    "source": "CI Orb",
+    "source": "${CIRCLE_BUILD_URL}",
     "note": "Successful pass close alert",
     "details": {
       "build_number":"${CIRCLE_PREVIOUS_BUILD_NUM}",
