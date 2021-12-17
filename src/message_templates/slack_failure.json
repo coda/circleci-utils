@@ -83,7 +83,15 @@
 						"text": "View Github Diff Range"
 					},
 					"url": "${DIFF_URL}"
-				}			
+				},
+				{
+					"type": "button",
+					"text": {
+						"type": "plain_text",
+						"text": "View Pull Request"
+					},
+					"url": "${CIRCLE_PULL_REQUEST}"
+				}							
 			]
 		}
 	]

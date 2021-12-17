@@ -15,8 +15,6 @@ orbs:
   utils: coda/utils@<<pipeline.parameters.dev-orb-version>>
   circleci-cli: circleci/circleci-cli@0.1.9
   orb-tools: circleci/orb-tools@10.1.0
-  bats: circleci/bats@1.0
-  shellcheck: circleci/shellcheck@2.0
   slack: circleci/slack@4.5.0
 
 # Pipeline Parameters

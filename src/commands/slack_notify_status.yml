@@ -37,12 +37,12 @@ steps:
 - slack/notify:
     channel: << parameters.channel >>
     event: fail
-    custom: <<include(message_templates/fail.json)>>
+    custom: <<include(message_templates/slack_failure.json)>>
     mentions: <<parameters.slack_tag>>
 - slack/notify:
     channel: <<parameters.channel>>
     event: pass
-    custom: <<include(message_templates/success.json)>>
+    custom: <<include(message_templates/slack_success.json)>>
 
 
     

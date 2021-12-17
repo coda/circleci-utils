@@ -26,8 +26,8 @@ steps:
 - slack/notify:
     channel: $SLACK_USER_ID
     event: pass
-    custom: <<include(message_templates/on_hold.json)>>
+    custom: <<include(message_templates/slack_on_hold.json)>>
 - slack/notify:
     channel: $SLACK_USER_ID
     event: fail
-    custom: <<include(message_templates/fail.json)>>
+    custom: <<include(message_templates/slack_failure.json)>>
