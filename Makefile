@@ -8,16 +8,12 @@ wrap-python-files:
 			python ${ROOTDIR}/reformat_python.py ${ROOTDIR}/src/scripts/$$f; \
 		fi; \
 	done; \
-		
-.PHONY: 
-rewrap-py-files:
+
+.PHONY: rewrap-py-files
+rewrap-py-files: delete-python-wrapped-files
 	$(MAKE) delete-python-wrapped-files 
 	$(MAKE) wrap-python-files
 
 .PHONY: delete-python-wrapped-files 
 delete-python-wrapped-files: 
-	for f in $(shell ls ${ROOTDIR}/src/scripts); do \
-		if [[ $$f == *_py.sh ]]; then \
-			rm ${ROOTDIR}/src/scripts/$$f; \
-		fi; \
-	done; \
+	-rm -f ${ROOTDIR}/src/scripts/*_py.sh
