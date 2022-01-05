@@ -6,11 +6,11 @@ default_build_environment: &default_build_environment
         username: codainternaltools
         password: $DOCKERHUB_PASSWORD
 python_build: &python_build
-    docker:
-      - image: cimg/python:3.9.0
-        auth:
-          username: codainternaltools
-          password: $DOCKERHUB_PASSWORD
+  docker:
+    - image: cimg/python:3.9.0
+      auth:
+        username: codainternaltools
+        password: $DOCKERHUB_PASSWORD
 orbs:
   utils: coda/utils@<<pipeline.parameters.dev-orb-version>>
   circleci-cli: circleci/circleci-cli@0.1.9
@@ -29,16 +29,18 @@ parameters:
 
 commands:
 
-
 jobs:
-
   test:
     <<: *python_build
     steps:
       - checkout
-      - run: 
+      - run:
           command: make wrap-python-files
           name: Add shell script around python files
+      - utils/send_alert:
+          channel: C02PCQKU6SW # circleci-orb-testing channel
+          send_slack_success: true
+          send_slack_failure: true
       - utils/slack-notify-waiting-for-approval:
           slack_bot_token: ${SLACK_BOT_TOKEN}
 
@@ -51,7 +53,7 @@ jobs:
         description: publishing token
     steps:
       - checkout
-      - run: 
+      - run:
           command: make wrap-python-files
           name: Add shell script around python files
       - circleci-cli/install
@@ -69,14 +71,14 @@ jobs:
         description: publishing token
     steps:
       - checkout
-      - run: 
+      - run:
           command: make wrap-python-files
           name: Add shell script around python files
       - circleci-cli/install
       - orb-tools/pack
       - orb-tools/increment:
           token-variable: <<parameters.publish-token-variable>>
-          segment: major 
+          segment: major
           orb-ref: coda/utils@dev:alpha
 
   publish-minor:
@@ -88,13 +90,13 @@ jobs:
         description: publishing token
     steps:
       - checkout
-      - run: 
+      - run:
           command: make wrap-python-files
           name: Add shell script around python files
       - circleci-cli/install
       - orb-tools/increment:
           token-variable: <<parameters.publish-token-variable>>
-          segment: minor 
+          segment: minor
           orb-ref: coda/utils@dev:alpha
 
 workflows:

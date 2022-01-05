@@ -19,5 +19,5 @@ steps:
       command: |
         echo "export vcs=<<parameters.vcs>>" >> "$BASH_ENV"
         echo "export CIRCLECI_TOKEN=<<parameters.circle_token>>" >> "$BASH_ENV"
-  - run: 
+  - run:
       command: <<include(scripts/cancel_older_approvals_py.sh)>>

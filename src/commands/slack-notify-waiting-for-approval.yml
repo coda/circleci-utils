@@ -16,18 +16,18 @@ parameters:
     description: Slack Message to send
     type: string
 steps:
-- run:
-    name: Set variables
-    command: |
-      echo "export EMAIL_DOMAIN=<<parameters.email_domain>>" >> "$BASH_ENV"
-- run:
-    name: Fetch User Information from Look Up Table
-    command: <<include(scripts/fetch_user_handles.sh)>>
-- slack/notify:
-    channel: $SLACK_USER_ID
-    event: pass
-    custom: <<include(message_templates/slack_on_hold.json)>>
-- slack/notify:
-    channel: $SLACK_USER_ID
-    event: fail
-    custom: <<include(message_templates/slack_failure.json)>>
+  - run:
+      name: Set variables
+      command: |
+        echo "export EMAIL_DOMAIN=<<parameters.email_domain>>" >> "$BASH_ENV"
+  - run:
+      name: Fetch User Information from Look Up Table
+      command: <<include(scripts/fetch_user_handles.sh)>>
+  - slack/notify:
+      channel: $SLACK_USER_ID
+      event: pass
+      custom: <<include(message_templates/slack_on_hold.json)>>
+  - slack/notify:
+      channel: $SLACK_USER_ID
+      event: fail
+      custom: <<include(message_templates/slack_failure.json)>>

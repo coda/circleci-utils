@@ -5,6 +5,8 @@ import os
 import sys
 
 import requests
+from requests.adapters import HTTPAdapter
+from urllib3.util import Retry
 
 CIRCLECI_TOKEN = os.getenv('CIRCLECI_TOKEN')
 CIRCLE_PROJECT_USERNAME = os.getenv('CIRCLE_PROJECT_USERNAME')
@@ -26,7 +28,7 @@ def get_recent_builds(page=0):
     url = url_format.format(CIRCLE_PROJECT_USERNAME, CIRCLE_PROJECT_REPONAME, CIRCLE_BRANCH, CIRCLECI_TOKEN, CIRCLE_FETCH_PAGE_SIZE,
                             offset)
 
-    response = requests.get(url)
+    response = http.get(url)
     response.raise_for_status()
     return response.json()
 
@@ -52,6 +54,10 @@ def get_latest_hash():
 
     return latest_git_hash
 
+retry_strategy = Retry(
+total=6, status_forcelist=[429, 500, 502, 503, 504], allowed_methods=["GET"], backoff_factor=10)
+adapter = HTTPAdapter(max_retries=retry_strategy)
+http = requests.Session()
 
 git_hash = get_latest_hash()
 if not git_hash:

@@ -10,39 +10,36 @@ parameters:
     description: slack user to mention
     type: string
     default: "None provided"
-  channel: 
+  channel:
     description: slack channel ID to send the message
-    type: string 
+    type: string
     default: C02GSTENV19
 steps:
-- run:
-    name: Set variables
-    command: |
-      echo "export EMAIL_DOMAIN=<<parameters.email_domain>>" >> "$BASH_ENV"
-    when: always
-- run:
-    name: Check if env vars needed for slack msg are missing
-    command: |
-      if [ -z "$SLACK_USER_ID" ]; then \
-        echo "export SLACK_USER_TAG=Slack handle not found" >> "$BASH_ENV"
-      fi; 
-      if [ -z "$OPSGENIE_URL" ]; then \
-        echo "export OPSGENIE_URL=https://krypton.app.opsgenie.com" >> "$BASH_ENV"
-      fi; 
-    when: always
-- run:
-    name: Fetch User Information from Look Up Table
-    command: <<include(scripts/fetch_user_handles.sh)>>
-    when: always
-- slack/notify:
-    channel: << parameters.channel >>
-    event: fail
-    custom: <<include(message_templates/slack_failure.json)>>
-    mentions: <<parameters.slack_tag>>
-- slack/notify:
-    channel: <<parameters.channel>>
-    event: pass
-    custom: <<include(message_templates/slack_success.json)>>
-
-
-    
+  - run:
+      name: Set variables
+      command: |
+        echo "export EMAIL_DOMAIN=<<parameters.email_domain>>" >> "$BASH_ENV"
+      when: always
+  - run:
+      name: Check if env vars needed for slack msg are missing
+      command: |
+        if [ -z "$SLACK_USER_ID" ]; then \
+          echo "export SLACK_USER_TAG=Slack handle not found" >> "$BASH_ENV"
+        fi; 
+        if [ -z "$OPSGENIE_URL" ]; then \
+          echo "export OPSGENIE_URL=https://krypton.app.opsgenie.com" >> "$BASH_ENV"
+        fi;
+      when: always
+  - run:
+      name: Fetch User Information from Look Up Table
+      command: <<include(scripts/fetch_user_handles.sh)>>
+      when: always
+  - slack/notify:
+      channel: << parameters.channel >>
+      event: fail
+      custom: <<include(message_templates/slack_failure.json)>>
+      mentions: <<parameters.slack_tag>>
+  - slack/notify:
+      channel: <<parameters.channel>>
+      event: pass
+      custom: <<include(message_templates/slack_success.json)>>

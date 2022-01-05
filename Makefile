@@ -3,11 +3,7 @@ ROOTDIR := $(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
 
 .PHONY: wrap-python-files
 wrap-python-files:
-	for f in $(shell ls ${ROOTDIR}/src/scripts); do \
-		if [[ $$f == *.py ]]; then \
-			python ${ROOTDIR}/reformat_python.py ${ROOTDIR}/src/scripts/$$f; \
-		fi; \
-	done; \
+	find . -name \*.py -exec python3 ${ROOTDIR}/reformat_python.py {} \;
 
 .PHONY: rewrap-py-files
 rewrap-py-files: delete-python-wrapped-files

@@ -1,6 +1,9 @@
 import os
 import requests
 import logging
+from requests.adapters import HTTPAdapter
+from urllib3.util import Retry
+
 CIRCLECI_TOKEN = os.getenv('CIRCLECI_TOKEN')
 CIRCLE_PROJECT_USERNAME = os.getenv('CIRCLE_PROJECT_USERNAME')
 CIRCLE_PROJECT_REPONAME = os.getenv('CIRCLE_PROJECT_REPONAME')
@@ -8,12 +11,17 @@ CIRCLE_BRANCH = os.getenv('CIRCLE_BRANCH')
 CIRCLE_WORKFLOW_JOB_ID = os.getenv('CIRCLE_WORKFLOW_JOB_ID')
 
 def ensure_parallel_job_success():
+    retry_strategy = Retry(
+    total=6, status_forcelist=[429, 500, 502, 503, 504], allowed_methods=["GET"], backoff_factor=10)
+    adapter = HTTPAdapter(max_retries=retry_strategy)
+    http = requests.Session()
+
     CIRCLE_NODE_INDEX = os.getenv('CIRCLE_NODE_INDEX')
 
     url = f'https://circleci.com/api/v2/project/gh/{CIRCLE_PROJECT_USERNAME}/{CIRCLE_PROJECT_REPONAME}/job/{CIRCLE_WORKFLOW_JOB_ID}'
-    headers = headers = {'Circle-Token': CIRCLECI_TOKEN}
+    headers = {'Circle-Token': CIRCLECI_TOKEN}
     try:
-        response = requests.get(url, headers=headers)
+        response = http.get(url, headers=headers)
         response.raise_for_status()
         # if a previous job has failed; then do not report 
         # the last successful job will report success
