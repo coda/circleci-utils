@@ -79,7 +79,7 @@ jobs:
       - orb-tools/increment:
           token-variable: <<parameters.publish-token-variable>>
           segment: major
-          orb-ref: coda/utils@dev:alpha
+          orb-ref: coda/utils
 
   publish-minor:
     <<: *python_build
@@ -97,7 +97,7 @@ jobs:
       - orb-tools/increment:
           token-variable: <<parameters.publish-token-variable>>
           segment: minor
-          orb-ref: coda/utils@dev:alpha
+          orb-ref: coda/utils
 
 workflows:
   publish-dev:
