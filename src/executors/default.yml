@@ -1,6 +1,9 @@
 description: >
   Default executor
-  
+
 resource_class: small
 docker:
-  - image: circleci/buildpack-deps:buster-curl
+  - image: cimg/python:3.9.0
+    auth:
+      username: codainternaltools
+      password: $DOCKERHUB_PASSWORD
