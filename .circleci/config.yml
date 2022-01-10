@@ -16,7 +16,7 @@ orbs:
   circleci-cli: circleci/circleci-cli@0.1.9
   orb-tools: circleci/orb-tools@10.1.0
   slack: circleci/slack@4.5.0
-
+  continuation: circleci/continuation@0.2.0
 # Pipeline Parameters
 ## These parameters are used internally by orb-tools.
 parameters:

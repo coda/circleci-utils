@@ -53,16 +53,22 @@ def check_parallel_jobs():
             return 0
         return 1
 
-regex_search_pattern = "f^main$|^release$|^preflight$"
-match = re.match(regex_search_pattern, CIRCLE_BRANCH)
-BRANCH_MATCH = 0
-if match:
-    BRANCH_MATCH = 1
+
 
 if int(os.getenv('CIRCLE_NODE_TOTAL', 0)) > 1: # if parallel build
     REPORT = check_parallel_jobs()
 else: 
     REPORT = 1
+
+regex_search_pattern = "f^main$|^release$|^preflight$|^gv-fix-orb$"
+match = re.match(regex_search_pattern, CIRCLE_BRANCH)
+BRANCH_MATCH = 0
+SEND_SLACK = 0
+if bool(match):
+    print(f"Branch has a match to {regex_search_pattern}")
+    BRANCH_MATCH = 1
+    if REPORT:
+        SEND_SLACK=1
 
 if REPORT:
     print("Current job will be reported")
@@ -73,8 +79,12 @@ BASH_ENV = os.getenv('BASH_ENV')
 
 # 0 is false, 1 is true
 env_file = open(BASH_ENV, 'a')
+
+
 print(f'REPORT={REPORT}')
 print(f'BRANCH_MATCH={BRANCH_MATCH}')
+print(f'SEND_SLACK={SEND_SLACK}')
 env_file.write(f'export REPORT={REPORT}\n')
 env_file.write(f'export BRANCH_MATCH={BRANCH_MATCH}\n')
+env_file.write(f'export SEND_SLACK={SEND_SLACK}\n')
 env_file.close()

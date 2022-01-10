@@ -1,0 +1,48 @@
+description: Send build results to Opsgenie API, with detailed information
+parameters:
+  email_domain:
+    default: coda.io
+    description: |
+      Optional email domain for users within the workspace. Must be specified if user aliases are not fully qualified.
+    type: string
+  send_slack_failure:
+    default: false
+    description: Send slack notification for failures; default false
+    type: boolean
+  send_slack_success:
+    default: false
+    description: Send slack notification for success; default false
+    type: boolean
+  channel:
+    description: slack channel ID to send the message
+    type: string
+    default: C02GSTENV19
+  report:
+    description: bool set in check_parallel to determine whether parallel builds ready to report
+    type: string
+    default: "0"
+  slack_tag:
+    default: ''
+    description: slack user to mention
+    type: string
+steps:
+  - run:
+      name: print reports
+      command: |
+        if [ "${<< parameters.report >>}" = 1 ]; then
+            circleci-agent step halt
+        fi
+      when: always
+  - when: # only send slack if passes parallel check & requested to be sent & apropriate branch
+      condition:
+        and:
+          - equal: [ 1, << parameters.report >> ]
+          - or:
+              - << parameters.send_slack_failure >>
+              - << parameters.send_slack_success >>
+      steps:
+        - slack-notify-status:
+            slack_tag: $SLACK_USER_TAG
+            channel: << parameters.channel >>
+            send_slack_failure: << parameters.send_slack_failure >>
+            send_slack_success: << parameters.send_slack_success >>

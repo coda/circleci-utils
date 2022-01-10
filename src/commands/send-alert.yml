@@ -25,9 +25,13 @@ parameters:
     description: |
       bool set in check_parallel to determine whether branch name should be reported in slack
       set to main|preflight|release ; set in env var because branch checking equal not matching in commands
-    type: env_var_name
-    default: BRANCH_MATCH 
+    type: integer
+    default: 0
 steps:
+  - run:
+      name: print << parameters.BRANCH_MATCH >>
+      command: echo << parameters.BRANCH_MATCH >>
+      when: always
   - run:
       name: Check if in parallel
       command: <<include(scripts/check_parallel_py.sh)>>
@@ -40,49 +44,54 @@ steps:
       when: on_success
       environment:
         CURRENT_JOB_STATUS: 1
-  - when:
-      condition: ${<<parameters.REPORT>>}
-      steps:
-        - run:
-            command: |
-              echo "export EMAIL_DOMAIN=<<parameters.email_domain>>" >> "$BASH_ENV"
-              echo "export ALIAS=${CIRCLE_PROJECT_REPONAME}/${CIRCLE_BRANCH}#${CIRCLE_JOB}" >> "$BASH_ENV"
-              echo "export URI_ALIAS=${CIRCLE_PROJECT_REPONAME}%2F${CIRCLE_BRANCH}%23${CIRCLE_JOB}" >> "$BASH_ENV"
-            name: Set variables
-            when: always
-        - run:
-            name: Fetch User Information
-            command: <<include(scripts/fetch_user_handles.sh)>>
-            when: on_fail
-        - run:
-            name: Calculate LKG Diff Git URL
-            command: <<include(scripts/get_lkg_hash_py.sh)>>
-            when: on_fail
-        - run:
-            name: Send OpsGenie Failure Alert
-            command: <<include(scripts/opsgenie_alert_py.sh)>>
-            environment:
-              OPSGENIE_BODY: <<include(message_templates/opsgenie_failure.json)>>
-              STATUS: 0
-            when: on_fail
-        - run:
-            name: Send OpsGenie Success Alert
-            command: <<include(scripts/opsgenie_alert_py.sh)>>
-            environment:
-              OPSGENIE_BODY: <<include(message_templates/opsgenie_success.json)>>
-              STATUS: 1
-            when: on_success
+  - run:
+      command: |
+        echo "export EMAIL_DOMAIN=<<parameters.email_domain>>" >> "$BASH_ENV"
+        echo "export ALIAS=${CIRCLE_PROJECT_REPONAME}/${CIRCLE_BRANCH}#${CIRCLE_JOB}" >> "$BASH_ENV"
+        echo "export URI_ALIAS=${CIRCLE_PROJECT_REPONAME}%2F${CIRCLE_BRANCH}%23${CIRCLE_JOB}" >> "$BASH_ENV"
+      name: Set variables
+      when: always
+  - run:
+      name: Fetch User Information
+      command: <<include(scripts/fetch_user_handles.sh)>>
+      when: on_fail
+  - run:
+      name: Calculate LKG Diff Git URL
+      command: <<include(scripts/get_lkg_hash_py.sh)>>
+      when: on_fail
+  - run:
+      name: Send OpsGenie Failure Alert
+      command: <<include(scripts/opsgenie_alert_py.sh)>>
+      environment:
+        OPSGENIE_BODY: <<include(message_templates/opsgenie_failure.json)>>
+        STATUS: 0
+      when: on_fail
+  - run:
+      name: Send OpsGenie Success Alert
+      command: <<include(scripts/opsgenie_alert_py.sh)>>
+      environment:
+        OPSGENIE_BODY: <<include(message_templates/opsgenie_success.json)>>
+        STATUS: 1
+      when: on_success
+  - run:
+      name: print send_slack
+      command: echo "${SEND_SLACK}"
+  - run:
+      name: Halt if branch name or alert does not match
+      command: |
+        if [ "${SEND_SLACK}" = 0 ]; then
+            circleci-agent step halt
+        fi
+      when: always
   - when: # only send slack if passes parallel check & requested to be sent & apropriate branch
       condition:
-        and:
-          - ${<<parameters.REPORT>>}
-          - ${<<parameters.BRANCH_MATCH>>}
-          - or:
-              - << parameters.send_slack_failure >>
-              - << parameters.send_slack_success >>
+        or:
+          - << parameters.send_slack_failure >>
+          - << parameters.send_slack_success >>
       steps:
         - slack-notify-status:
             slack_tag: $SLACK_USER_TAG
             channel: << parameters.channel >>
             send_slack_failure: << parameters.send_slack_failure >>
             send_slack_success: << parameters.send_slack_success >>
+

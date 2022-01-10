@@ -12,7 +12,11 @@ URI_ALIAS = os.getenv('URI_ALIAS')
 
 OPS_GENIE_API_KEY = os.getenv('OPS_GENIE_API_KEY')
 BASH_ENV = os.getenv('BASH_ENV')
-
+REPORT = os.getenv('REPORT')
+if not REPORT:
+    print("Do not report on this branch")
+    exit(0)
+    
 retry_strategy = Retry(
 total=6, status_forcelist=[429, 500, 502, 503, 504], allowed_methods=['GET', 'POST'], backoff_factor=10)
 adapter = HTTPAdapter(max_retries=retry_strategy)

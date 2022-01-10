@@ -14,6 +14,11 @@ CIRCLE_PROJECT_REPONAME = os.getenv('CIRCLE_PROJECT_REPONAME')
 CIRCLE_BRANCH = os.getenv('CIRCLE_BRANCH')
 CIRCLE_JOB = os.getenv('CIRCLE_JOB')
 CIRCLE_SHA1 = os.getenv('CIRCLE_SHA1')
+REPORT = os.getenv('REPORT')
+if not REPORT:
+    print("Do not report on this branch")
+    exit(0)
+    
 ACTIVE_JOB_STATES = ['running', 'pending', 'queued']
 
 CIRCLE_FETCH_PAGE_SIZE = 100
@@ -58,6 +63,7 @@ retry_strategy = Retry(
 total=6, status_forcelist=[429, 500, 502, 503, 504], allowed_methods=['GET'], backoff_factor=10)
 adapter = HTTPAdapter(max_retries=retry_strategy)
 http = requests.Session()
+
 
 git_hash = get_latest_hash()
 if not git_hash:
