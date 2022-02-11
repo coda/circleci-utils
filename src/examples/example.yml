@@ -8,7 +8,8 @@ usage:
         - image: cimg/base:stable
       steps:
         - checkout
-        - utils/notify
+        - utils/notify:
+            on_failure: true
   workflows:
     use-my-orb:
       jobs:
@@ -17,4 +18,4 @@ usage:
             circle_token: ${CIRCLECI_API_TOKEN}
         - utils/slack-notify-waiting-for-approval:
             coda_prod_token: ${CODA_PROD_TOKEN}
-            slack_bot_token: ${SLACK_BOT_TOKEN}
+            slack_bot_token: ${PUSH_REMINDER_BOT_TOKEN}

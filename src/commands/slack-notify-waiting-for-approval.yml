@@ -1,6 +1,40 @@
 description: |
   Notifies the current workflow owner that their workflow is pending approval to proceed.
+  Depends on jq being present.
+
+  Setup:
+    1. Create Coda document with a table containing columns `circleci alias` (ex: github username) and `email`, and populate this table with information for each github user.
+    3. Find the docId, tableId, and columnIds for the circleci user alias and email columnIds.
+    4. Create a Coda API token for this document at https://coda.io/account - limit the token to read access to the target table.
+    5. Setup a Slack Bot account with scopes `users:read`, `users:read.email`, and `chat:write`.
+    6. Configure orb based on required args
 parameters:
+  coda_user_roster_table_url:
+    description: |
+      Fully qualified API URL to a table containing CIRCLECI_USERNAMEs to email aliases.    Must be of the form
+      https://coda.io/apis/v1/docs/<DOCID>/tables/<TABLEID>/rows.
+    type: string
+    default: https://coda.io/apis/v1/docs/CBRzjlr8md/tables/table-37x7Jsfrqx/rows
+  coda_prod_token:
+    description: |
+      Env var of a token granted read access to the coda_user_roster_table_url document.
+    type: string
+    default: ${CODA_PROD_TOKEN}
+  coda_circleci_user_name_col:
+    description: |
+      Coda columnId of the column storing the CircleCI username in the coda_user_roster_table_url document.
+    type: string
+    default: c-HWxgJukgCs
+  coda_github_col:
+    description: |
+      Coda columnId of the column storing the CircleCI username in the coda_user_roster_table_url document.
+    type: string
+    default: c-HWxgJukgCs
+  coda_user_email_col:
+    description: |
+      Coda columnId of the column storing the Coda email in the coda_user_roster_table_url document.
+    type: string
+    default: c-l3XSvkG3vB
   email_domain:
     description: |
       Optional email domain for users within the workspace.   Must be specified if user aliases are not fully qualified.
@@ -10,24 +44,67 @@ parameters:
     type: string
     description: |
       Token used by Slack bot application.   Must have scopes `users:read`, `users:read.email`, and `chat:write`.
-    default: ${SLACK_BOT_TOKEN}
+    default: ${PUSH_REMINDER_BOT_TOKEN}
+  on_failure:
+    default: false
+    description: Failure information of circleci build
+    type: boolean
   slack_message:
     default: "Pending Approval for ${CIRCLE_PROJECT_REPONAME} ${CIRCLE_USERNAME}"
     description: Slack Message to send
     type: string
 steps:
-  - run:
-      name: Set variables
-      command: |
-        echo "export EMAIL_DOMAIN=<<parameters.email_domain>>" >> "$BASH_ENV"
-  - run:
-      name: Fetch User Information from Look Up Table
-      command: <<include(scripts/fetch_user_handles.sh)>>
-  - slack/notify:
-      channel: $SLACK_USER_ID
-      event: pass
-      custom: <<include(message_templates/slack_on_hold.json)>>
-  - slack/notify:
-      channel: $SLACK_USER_ID
-      event: fail
-      custom: <<include(message_templates/slack_failure.json)>>
+- run:
+    name: Set variables
+    command: |
+      echo "export EMAIL_DOMAIN=<<parameters.email_domain>>" >> "$BASH_ENV"
+      echo "export SLACK_BOT_TOKEN=<<parameters.slack_bot_token>>" >> "$BASH_ENV"
+      echo "export SLACK_MESSAGE=<<parameters.slack_message>>" >> "$BASH_ENV"
+- when:
+    condition: <<parameters.on_failure>>
+    steps:
+    - run:
+        name: Set Failure Slack Message
+        command: | 
+          SLACK_MESSAGE="Failing job for ${CIRCLE_PROJECT_REPONAME}"
+- run:
+    name: Fetch User Information from Look Up Table
+    command: <<include(scripts/fetch_user_handles.sh)>>
+- when:
+    condition: $SLACK_USER_ID
+    steps:
+    - run:
+        name: Send Slack Message
+        command: |
+          set -eo pipefail
+          curl -X POST -H "Authorization: Bearer $PUSH_REMINDER_BOT_TOKEN" \
+            -H "Content-Type: application/json" -d \
+            "{ \
+              \"channel\": \"${SLACK_USER_ID}\", \
+              \"attachments\": [ \
+                { \
+                  \"text\": \"${SLACK_MESSAGE}\", \
+                  \"fields\": [ \
+                    { \
+                      \"title\": \"Project\", \
+                      \"value\": \"${CIRCLE_PROJECT_REPONAME}\", \
+                      \"short\": true \
+                    }, \
+                    { \
+                      \"title\": \"Job Number\", \
+                      \"value\": \"${CIRCLE_BUILD_NUM}\", \
+                      \"short\": true \
+                    } \
+                  ], \
+                  \"actions\": [ \
+                    { \
+                      \"type\": \"button\", \
+                      \"text\": \"Visit Workflow\", \
+                      \"url\": \"https://circleci.com/workflow-run/${CIRCLE_WORKFLOW_ID}\" \
+                    } \
+                  ], \
+                  \"color\": \"#f46a54\" \
+                } \
+              ] \
+            }" \
+            'https://slack.com/api/chat.postMessage'
