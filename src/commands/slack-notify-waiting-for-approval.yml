@@ -57,16 +57,16 @@ steps:
 - run:
     name: Set variables
     command: |
-      echo "export EMAIL_DOMAIN=<<parameters.email_domain>>" >> "$BASH_ENV"
-      echo "export SLACK_BOT_TOKEN=<<parameters.slack_bot_token>>" >> "$BASH_ENV"
-      echo "export SLACK_MESSAGE=<<parameters.slack_message>>" >> "$BASH_ENV"
+      echo 'export EMAIL_DOMAIN="<<parameters.email_domain>>"' >> "$BASH_ENV"
+      echo 'export SLACK_BOT_TOKEN="<<parameters.slack_bot_token>>"' >> "$BASH_ENV"
+      echo 'export SLACK_MESSAGE="<<parameters.slack_message>>"' >> "$BASH_ENV"
 - when:
     condition: <<parameters.on_failure>>
     steps:
     - run:
         name: Set Failure Slack Message
-        command: | 
-          SLACK_MESSAGE="Failing job for ${CIRCLE_PROJECT_REPONAME}"
+        command: |
+          echo 'export SLACK_MESSAGE="Failing job for ${CIRCLE_PROJECT_REPONAME}"' >> "$BASH_ENV"
 - run:
     name: Fetch User Information from Look Up Table
     command: <<include(scripts/fetch_user_handles.sh)>>
