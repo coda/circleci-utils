@@ -8,11 +8,6 @@ function run_main() {
     done;
 }
 
-function get_line() {
-    read -r line < ~/.aws/credentials
-    echo "$line"
-}
-
 # Will not run if sourced for bats.
 ORB_TEST_ENV="bats-core"
 if [ "${0#*$ORB_TEST_ENV}" == "$0" ]; then

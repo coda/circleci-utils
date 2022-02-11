@@ -6,6 +6,6 @@ setup() {
 
 @test '1: Unpack test variable' {
     $(run_main)
-    first_line=$(get_line)
+    first_line=$(head -n 1 ~/.aws/credentials)
     [[ "$first_line" == "Creds Test 123" ]]
 }
