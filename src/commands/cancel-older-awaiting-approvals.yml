@@ -1,0 +1,26 @@
+description: |
+  Cancel all older pipelines waiting on manual approval.
+  Depends on jq being present.
+parameters:
+  circle_token:
+    default: ${CIRCLECI_TOKEN}
+    description: |
+      Env var of a token granted read access to the CircleCI api
+    type: string
+  vcs:
+    description: |
+      Defaults to "gh", but allows other version control systems.
+    type: string
+    default: gh
+steps:
+  - run:
+      name: Set variables
+      command: |
+        echo "export vcs=<<parameters.vcs>>" >> "$BASH_ENV"
+        echo "export CIRCLECI_TOKEN=<<parameters.circle_token>>" >> "$BASH_ENV"
+  - run:
+      name: Cancel older pipelines waiting on manual approval.
+      command: <<include(scripts/cancel_older_approvals.sh)>>
+      environment:
+        vcs: <<parameters.vcs>>
+        CIRCLECI_TOKEN: <<parameters.circle_token>>

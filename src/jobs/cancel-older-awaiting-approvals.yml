@@ -1,5 +1,6 @@
 description: |
   Cancel all older pipelines waiting on manual approval.
+  Depends on jq being present.
 parameters:
   circle_token:
     default: ${CIRCLECI_TOKEN}
@@ -13,10 +14,6 @@ parameters:
     default: gh
 executor: default
 steps:
-  - run:
-      name: Set variables
-      command: |
-        echo "export vcs=<<parameters.vcs>>" >> "$BASH_ENV"
-        echo "export CIRCLECI_TOKEN=<<parameters.circle_token>>" >> "$BASH_ENV"
-  - run:
-      command: <<include(scripts/cancel_older_approvals_py.sh)>>
+  - cancel-older-awaiting-approvals:
+      circle_token: << parameters.circle_token >>
+      vcs: << parameters.vcs >>
