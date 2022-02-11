@@ -1,4 +1,5 @@
 version: 2.1
+
 default_build_environment: &default_build_environment
   docker:
     - image: cimg/base:stable
@@ -102,15 +103,35 @@ jobs:
 workflows:
   publish-dev:
     jobs:
-      - publish-dev-version:
+      - orb-tools/pack:
+          context:
+            - dockerhub
+      - shellcheck/check:
+          context:
+            - dockerhub
+          dir: ./src/scripts
+      - bats/run:
+          context:
+            - dockerhub
+          path: ./src/tests
+      - hold-for-dev-publish:
+          context:
+            - dockerhub
+          type: approval
+          requires:
+            - orb-tools/pack
+            - bats/run
+            - shellcheck/check
+      # Publish development version of the orb.
+      - orb-tools/publish-dev:
           context:
             - dockerhub
             - orb-publishing
-          filters:
-            branches:
-              ignore: main
-          publish-token-variable: ORB_PUBLISHING_TOKEN
-      - test:
+          orb-name: coda/utils
+          requires: [hold-for-dev-publish]
+      # dev:${CIRCLE_SHA1:0:7} version of your orb
+      - orb-tools/trigger-integration-tests-workflow:
+          name: trigger-integration-dev
           context:
             - dockerhub
             - orb-publishing
@@ -122,35 +143,23 @@ workflows:
             - publish-dev-version
   publish-prod:
     jobs:
-      - minor-semver:
-          type: approval
-          filters:
-            branches:
-              only:
-                - main
-      - major-semver:
-          type: approval
-          filters:
-            branches:
-              only:
-                - main
-      - publish-major:
+      - integration-test-notify:
           context:
             - dockerhub
             - orb-publishing
-            - util
-          publish-token-variable: ORB_PUBLISHING_TOKEN
-          requires:
-            - major-semver
-          filters:
-            branches:
-              only:
-                - main
-      - publish-minor:
+      - integration-test-slack:
           context:
             - dockerhub
             - orb-publishing
-            - util
+      - utils/cancel-older-awaiting-approvals:
+          context:
+            - dockerhub
+            - orb-publishing
+      - orb-tools/dev-promote-prod-from-commit-subject:
+          orb-name: coda/utils
+          context:
+            - dockerhub
+            - orb-publishing
           publish-token-variable: ORB_PUBLISHING_TOKEN
           requires:
             - minor-semver
