@@ -43,8 +43,6 @@ circleci orb publish orb.yml coda/utils@dev:<your_branch_name> --token <orb publ
 
 ## Used in Following Repos:
 
-
 - infra
 - headless-chrome
 - coda
-* pipenv, curl, jq required

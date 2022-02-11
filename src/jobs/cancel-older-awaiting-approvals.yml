@@ -1,5 +1,6 @@
 description: |
   Cancel all older pipelines waiting on manual approval.
+  Depends on jq being present.
 parameters:
   circle_token:
     default: ${CIRCLECI_TOKEN}

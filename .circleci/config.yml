@@ -37,7 +37,7 @@ jobs:
       - run:
           command: make wrap-python-files
           name: Add shell script around python files
-      - utils/send-alert:
+      - utils/send_alert:
           channel: C02PCQKU6SW # circleci-orb-testing channel
           send_slack_success: true
           send_slack_failure: true

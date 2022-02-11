@@ -5,6 +5,11 @@ parameters:
     description: |
       Optional email domain for users within the workspace. Must be specified if user aliases are not fully qualified.
     type: string
+  endpoint:
+    default: OPSGENIE_WEBHOOK
+    description: Enter either your Full URL value that you copied in Opsgenie
+      Integration Page
+    type: env_var_name
   send_slack_failure:
     default: false
     description: Send slack notification for failures; default false
@@ -17,31 +22,17 @@ parameters:
     description: slack channel ID to send the message
     type: string
     default: C02GSTENV19
-  REPORT:
-    description: bool set in check_parallel to determine whether parallel builds ready to report
-    type: env_var_name
-    default: REPORT
-  BRANCH_MATCH:
-    description: |
-      bool set in check_parallel to determine whether branch name should be reported in slack
-      set to main|preflight|release ; set in env var because branch checking equal not matching in commands
-    type: env_var_name
-    default: BRANCH_MATCH 
+  REPORTING:
+    description: slack channel ID to send the message
+    type: string
+    default: $REPORT
 steps:
   - run:
       name: Check if in parallel
       command: <<include(scripts/check_parallel_py.sh)>>
-      when: on_fail
-      environment:
-        CURRENT_JOB_STATUS: 0
-  - run:
-      name: Check if in parallel
-      command: <<include(scripts/check_parallel_py.sh)>>
-      when: on_success
-      environment:
-        CURRENT_JOB_STATUS: 1
+      when: always
   - when:
-      condition: ${<<parameters.REPORT>>}
+      condition: <<parameters.REPORTING>>
       steps:
         - run:
             command: |
@@ -72,17 +63,14 @@ steps:
               OPSGENIE_BODY: <<include(message_templates/opsgenie_success.json)>>
               STATUS: 1
             when: on_success
-  - when: # only send slack if passes parallel check & requested to be sent & apropriate branch
+  - when:
       condition:
         and:
-          - ${<<parameters.REPORT>>}
-          - ${<<parameters.BRANCH_MATCH>>}
+          - <<parameters.REPORTING>>
           - or:
               - << parameters.send_slack_failure >>
               - << parameters.send_slack_success >>
       steps:
-        - slack-notify-status:
+        - slack_notify_status:
             slack_tag: $SLACK_USER_TAG
             channel: << parameters.channel >>
-            send_slack_failure: << parameters.send_slack_failure >>
-            send_slack_success: << parameters.send_slack_success >>

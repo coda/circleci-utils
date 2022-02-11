@@ -1,4 +1,4 @@
-'''Grab last known good git hash'''
+"""Use the CircleCI v1.1 API to determine the Last Known Good build's git hash."""
 from __future__ import print_function
 
 import os
@@ -55,19 +55,19 @@ def get_latest_hash():
     return latest_git_hash
 
 retry_strategy = Retry(
-total=6, status_forcelist=[429, 500, 502, 503, 504], allowed_methods=['GET'], backoff_factor=10)
+total=6, status_forcelist=[429, 500, 502, 503, 504], allowed_methods=["GET"], backoff_factor=10)
 adapter = HTTPAdapter(max_retries=retry_strategy)
 http = requests.Session()
 
 git_hash = get_latest_hash()
 if not git_hash:
     print('Failed to find a LKG build')
-    DIFF_URL = f'https://github.com/{CIRCLE_PROJECT_USERNAME}/{CIRCLE_PROJECT_REPONAME}/commit/{CIRCLE_SHA1}'
+    DIFF_URL = f"https://github.com/{CIRCLE_PROJECT_USERNAME}/{CIRCLE_PROJECT_REPONAME}/commit/{CIRCLE_SHA1}"
 else: 
-    DIFF_URL = f'https://github.com/{CIRCLE_PROJECT_USERNAME}/{CIRCLE_PROJECT_REPONAME}/compare/{git_hash}...{CIRCLE_SHA1}'
+    DIFF_URL = f"https://github.com/{CIRCLE_PROJECT_USERNAME}/{CIRCLE_PROJECT_REPONAME}/compare/{git_hash}...{CIRCLE_SHA1}"
 
 BASH_ENV = os.getenv('BASH_ENV')
 
-env_file = open(BASH_ENV, 'a')
-env_file.write(f'export DIFF_URL={DIFF_URL}\n')
+env_file = open(BASH_ENV, "a")
+env_file.write(f"export DIFF_URL={DIFF_URL}\n")
 env_file.close()

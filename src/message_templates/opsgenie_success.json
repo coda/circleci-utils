@@ -5,7 +5,7 @@
   "username": "${CIRCLE_USERNAME}",
   "user": "Cody",
   "source": "${CIRCLE_BUILD_URL}",
-  "note": "Success",
+  "note": "Successful pass close alert",
   "details": {
     "build_number": "${CIRCLE_PREVIOUS_BUILD_NUM}",
     "build_url": "${CIRCLE_BUILD_URL}",
