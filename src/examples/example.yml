@@ -15,7 +15,7 @@ usage:
       jobs:
         - my-job
         - utils/cancel-older-awaiting-approvals:
-            circle_token: ${CIRCLECI_API_TOKEN}
+            circle_token: ${CIRCLECI_TOKEN}
         - utils/slack-notify-waiting-for-approval:
             coda_prod_token: ${CODA_PROD_TOKEN}
             slack_bot_token: ${PUSH_REMINDER_BOT_TOKEN}
