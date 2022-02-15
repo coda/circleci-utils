@@ -19,4 +19,4 @@ usage:
         - utils/slack-notify-waiting-for-approval:
             coda_prod_token: ${CODA_PROD_TOKEN}
             slack_bot_token: ${PUSH_REMINDER_BOT_TOKEN}
-        - utils/boostrap-aws-context-creds
+        - utils/bootstrap-aws-context-creds
