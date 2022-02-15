@@ -26,9 +26,17 @@ parameters:
       A "dev:alpha" version must exist for the initial pipeline run.
     type: string
     default: "dev:alpha"
+  circleci-user:
+    description: The user who published orb changes
+    type: string
+    default: ''
 
 commands:
-
+  boostrap_pipeline_circleci_user:
+    steps:
+      - run:
+          name: Initialize CIRCLE_USERNAME from pipeline
+          command: export CIRCLE_USERNAME=<< pipeline.parameters.circleci-user >>
 
 jobs:
   integration-test-notify:
@@ -42,6 +50,7 @@ jobs:
     <<: *default_build_environment
     steps:
       - checkout
+      - boostrap_pipeline_circleci_user
       - utils/slack-notify-waiting-for-approval:
           slack_bot_token: ${PUSH_REMINDER_BOT_TOKEN}
 
@@ -91,6 +100,7 @@ workflows:
             - orb-publishing
           requires:
             - orb-tools/publish-dev
+          pipeline-param-map: '{\"run-integration-tests\": true, \"dev-orb-version\": \"dev:${CIRCLE_SHA1:0:7}\", \"circleci-user\": \"${CIRCLE_USERNAME}\"}'
 
   integration-test_deploy:
     when: << pipeline.parameters.run-integration-tests >>
