@@ -32,11 +32,13 @@ parameters:
     default: ''
 
 commands:
-  boostrap_pipeline_circleci_user:
+  bootstrap_pipeline_circleci_user:
     steps:
       - run:
           name: Initialize CIRCLE_USERNAME from pipeline
-          command: export CIRCLE_USERNAME=<< pipeline.parameters.circleci-user >>
+          command: |
+            echo "export CIRCLE_USERNAME=<< pipeline.parameters.circleci-user >>" >> $BASH_ENV
+            source $BASH_ENV
 
 jobs:
   integration-test-notify:
@@ -50,7 +52,7 @@ jobs:
     <<: *default_build_environment
     steps:
       - checkout
-      - boostrap_pipeline_circleci_user
+      - bootstrap_pipeline_circleci_user
       - utils/slack-notify-waiting-for-approval:
           slack_bot_token: ${PUSH_REMINDER_BOT_TOKEN}
 
