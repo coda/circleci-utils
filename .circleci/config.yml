@@ -76,6 +76,7 @@ workflows:
       - bats/run:
           context:
             - dockerhub
+            - slack
           path: ./src/tests
       - hold-for-dev-publish:
           context:
