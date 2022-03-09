@@ -112,6 +112,7 @@ workflows:
             - dockerhub
             - orb-publishing
             - util
+            - ops-genie
       - integration-test-slack:
           context:
             - dockerhub
