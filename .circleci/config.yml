@@ -118,6 +118,7 @@ workflows:
             - dockerhub
             - orb-publishing
             - util
+            - slack
       - utils/cancel-older-awaiting-approvals:
           context:
             - dockerhub
