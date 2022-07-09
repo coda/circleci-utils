@@ -38,7 +38,7 @@ steps:
 - run:
     command: |
       echo '{}' | jq '{
-        "message": "[CircleCI] [#\(env.CIRCLE_PREVIOUS_BUILD_NUM)]: workflow \(env.CIRCLE_BRANCH) stage \(env.CIRCLE_STAGE) job \(env.CIRCLE_JOB)",
+        "message": "[CircleCI] [#\(env.CIRCLE_BUILD_NUM)]: workflow \(env.CIRCLE_BRANCH) stage \(env.CIRCLE_STAGE) job \(env.CIRCLE_JOB)",
         "alias": "\(env.CIRCLE_PROJECT_REPONAME)/\(env.CIRCLE_BRANCH)#\(env.CIRCLE_JOB)",
         "description":"See \(env.CIRCLE_BUILD_URL) for more details. ",
         "outcome": "failed",
