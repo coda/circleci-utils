@@ -13,7 +13,7 @@ parameters:
     type: string
     default: coda.io
   slack_bot_token:
-    default: $PUSH_REMINDER_BOT_TOKEN
+    default: $SLACK_ACCESS_TOKEN
     type: string
     description: |
       Token used by Slack bot application.   Must have scopes `users:read`, `users:read.email`, and `chat:write`.

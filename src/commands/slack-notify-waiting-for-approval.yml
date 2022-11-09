@@ -44,7 +44,7 @@ parameters:
     type: string
     description: |
       Token used by Slack bot application.   Must have scopes `users:read`, `users:read.email`, and `chat:write`.
-    default: ${PUSH_REMINDER_BOT_TOKEN}
+    default: ${SLACK_ACCESS_TOKEN}
   on_failure:
     default: false
     description: Failure information of circleci build
@@ -77,7 +77,7 @@ steps:
         name: Send Slack Message
         command: |
           set -eo pipefail
-          curl -X POST -H "Authorization: Bearer $PUSH_REMINDER_BOT_TOKEN" \
+          curl --fail-with-body -X POST -H "Authorization: Bearer $SLACK_ACCESS_TOKEN" \
             -H "Content-Type: application/json" -d \
             "{ \
               \"channel\": \"${SLACK_USER_ID}\", \
