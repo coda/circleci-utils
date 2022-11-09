@@ -25,7 +25,8 @@ Example: `[semver:major]`
 
 Push your branch and CI will trigger dev published version of orb with the commit hash as the version.
 
-### How to Publish Dev VersionManually
+### How to Publish Dev Version Manually
+In order to get the pipeline to work, you need to manually deploy a dev version so it can 'run on itself'. To that you must; 
 
 To manually pack your `orb.yml`, you can run `circleci orb pack .  > orb.yml` at the `@orb.yml` level.
 
@@ -35,6 +36,11 @@ circleci orb pack .  > orb.yml
 circleci orb publish orb.yml coda/utils@dev:<your_branch_name>
 ```
 
+### How to Publish Production Version Manually
+
+```
+ circleci orb publish  increment orb.yml coda/utils minor --token
+```
 
 ## Testing
 Using [bats](https://github.com/sstephenson/bats#installing-bats-from-source) to test bash scripts under src/tests.
