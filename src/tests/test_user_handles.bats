@@ -21,7 +21,7 @@ setup() {
 @test '4: Check Codas Slack Handle Exists' {
     export CIRCLE_USERNAME="gita-codaio"
     export EMAIL_DOMAIN="coda.io"
-    export SLACK_BOT_TOKEN=$PUSH_REMINDER_BOT_TOKEN
+    export SLACK_BOT_TOKEN=$SLACK_ACCESS_TOKEN
     result=$(run_main)
     [[ "$result" == *"U01DJE1DABE"* ]]
 }

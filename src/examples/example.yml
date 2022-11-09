@@ -18,5 +18,5 @@ usage:
             circle_token: ${CIRCLECI_TOKEN}
         - utils/slack-notify-waiting-for-approval:
             coda_prod_token: ${CODA_PROD_TOKEN}
-            slack_bot_token: ${PUSH_REMINDER_BOT_TOKEN}
+            slack_bot_token: ${SLACK_ACCESS_TOKEN}
         - utils/bootstrap-aws-context-creds

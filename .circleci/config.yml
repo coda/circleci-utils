@@ -54,7 +54,7 @@ jobs:
       - checkout
       - bootstrap_pipeline_circleci_user
       - utils/slack-notify-waiting-for-approval:
-          slack_bot_token: ${PUSH_REMINDER_BOT_TOKEN}
+          slack_bot_token: ${SLACK_ACCESS_TOKEN}
 
   integration-test-cancel-older-jobs:
     <<: *default_build_environment
