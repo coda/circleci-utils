@@ -37,8 +37,9 @@ workflows:
   lint-pack:
     jobs:
       - orb-tools/pack
+      # https://www.shellcheck.net/wiki/SC2002
       - shellcheck/check:
-          exclude: 'SC2148,SC2038,SC2086,SC2002,SC2016'
+          exclude: 'SC2002'
       - orb-tools/publish:
           context: 
             - dockerhub

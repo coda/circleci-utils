@@ -3,7 +3,7 @@ description: |
   Depends on jq being present.
 parameters:
   circle_token:
-    default: '${CIRCLECI_TOKEN}'
+    default: ${CIRCLECI_TOKEN}
     description: |
       Env var of a token granted read access to the CircleCI api
     type: string
