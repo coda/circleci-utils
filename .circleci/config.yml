@@ -6,10 +6,11 @@ default_build_environment: &default_build_environment
         username: codainternaltools
         password: $DOCKERHUB_PASSWORD
 
+setup: true 
 
 orbs:
   utils: coda/utils@<<pipeline.parameters.dev-orb-version>>
-  orb-tools: circleci/orb-tools@10.0.3
+  orb-tools: circleci/orb-tools@11.5.0
   bats: circleci/bats@1.0
   shellcheck: circleci/shellcheck@2.0
 
@@ -31,21 +32,11 @@ parameters:
     type: string
     default: ''
 
-commands:
-  bootstrap_pipeline_circleci_user:
-    steps:
-      - run:
-          name: Initialize CIRCLE_USERNAME from pipeline
-          command: |
-            echo "export CIRCLE_USERNAME=<< pipeline.parameters.circleci-user >>" >> $BASH_ENV
-            source $BASH_ENV
 
 workflows:
   lint-pack:
     jobs:
-      - orb-tools/lint
       - orb-tools/pack
-      - orb-tools/review
       - shellcheck/check:
           exclude: 'SC2148,SC2038,SC2086,SC2002,SC2016'
       - orb-tools/publish:
@@ -54,19 +45,23 @@ workflows:
             - orb-publishing
           orb-name: coda/utils
           requires:
-            - orb-tools/lint
-            - orb-tools/review
             - orb-tools/pack
             - shellcheck/check
           vcs-type: github
       - orb-tools/continue:
+          context:
+            - dockerhub
+            - orb-publishing
+            - util
+            - ops-genie
           pipeline-number: << pipeline.number >>
           requires:
             - orb-tools/publish
-          vcs-type: github
+          vcs-type: << pipeline.project.type >>
           filters:
               branches:
                   ignore: main
+
   publish:
     jobs:
       - orb-tools/publish:
@@ -80,9 +75,4 @@ workflows:
                 - main
           orb-name: coda/utils
           pub-type: production
-          requires:
-            - integration-test-notify
-            - integration-test-slack
-            - utils/cancel-older-awaiting-approvals
-          vcs-type: github
-          circleci-token: ORB-PUBLISHING-TOKEN
+          vcs-type: << pipeline.project.type >>

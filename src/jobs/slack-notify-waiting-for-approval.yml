@@ -1,6 +1,9 @@
-description: |
-  Notifies the current workflow owner that their workflow is pending approval to proceed.
+description: >
+  Notifies the current workflow owner that their workflow is pending approval to
+  proceed.
+
   Depends on jq being present.
+
 
   Setup:
     1. Ensure github user has format <email-prefix>-codaio 
@@ -8,20 +11,22 @@ description: |
     3. Configure orb based on required args
 parameters:
   email_domain:
-    description: |
-      Optional email domain for users within the workspace.   Must be specified if user aliases are not fully qualified.
+    description: >
+      Optional email domain for users within the workspace.   Must be specified
+      if user aliases are not fully qualified.
     type: string
     default: coda.io
   slack_bot_token:
     default: $SLACK_ACCESS_TOKEN
     type: string
-    description: |
-      Token used by Slack bot application.   Must have scopes `users:read`, `users:read.email`, and `chat:write`.
+    description: >
+      Token used by Slack bot application.   Must have scopes `users:read`,
+      `users:read.email`, and `chat:write`.
   slack_message:
     type: string
     description: |
       Slack message to send 
-    default: "Pending Approval for ${CIRCLE_PROJECT_REPONAME} ${CIRCLE_USERNAME}"
+    default: 'Pending Approval for ${CIRCLE_PROJECT_REPONAME} ${CIRCLE_USERNAME}'
 executor: default
 steps:
   - slack-notify-waiting-for-approval:

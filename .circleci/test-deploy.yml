@@ -1,9 +1,30 @@
 version: '2.1'
 orbs:
-  utils: coda/utils@dev:<<pipeline.git.revision>>'
+  utils: coda/utils@dev:<<pipeline.git.revision>>
   orb-tools: circleci/orb-tools@11.1
   bats: circleci/bats@1.0
 
+default_build_environment: &default_build_environment
+  docker:
+    - image: cimg/base:stable
+      auth:
+        username: codainternaltools
+        password: $DOCKERHUB_PASSWORD
+
+parameters:
+  circleci-user:
+    description: The user who published orb changes
+    type: string
+    default: ''
+
+commands:
+  bootstrap_pipeline_circleci_user:
+    steps:
+      - run:
+          name: Initialize CIRCLE_USERNAME from pipeline
+          command: |
+            echo "export CIRCLE_USERNAME=<< pipeline.parameters.circleci-user >>" >> $BASH_ENV
+            source $BASH_ENV
 
 jobs:
   integration-test-notify:
@@ -47,4 +68,5 @@ workflows:
             - dockerhub
             - orb-publishing
             - util
+            - ops-genie
 
