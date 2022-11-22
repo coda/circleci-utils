@@ -68,7 +68,9 @@ workflows:
 
   publish:
     when:
-      matches: { pattern: "^v*" , value: << pipeline.git.tag >> }
+      matches:
+        pattern: "^v*"
+        value: << pipeline.git.tag >>
     jobs:
       - orb-tools/publish:
           context: 
