@@ -36,7 +36,7 @@ workflows:
   lint-pack:
     when:
       not:
-        equal: [ main, << pipeline.git.branch >> ]
+        equal: [ gv-main-branch-filter, << pipeline.git.branch >> ]
     jobs:
       - orb-tools/pack
       # https://www.shellcheck.net/wiki/SC2002
@@ -67,7 +67,7 @@ workflows:
 
   publish:
     when:
-      equal: [ main, << pipeline.git.branch >> ]
+      equal: [ gv-main-branch-filter, << pipeline.git.branch >> ]
     jobs:
       - orb-tools/publish:
           context: 
