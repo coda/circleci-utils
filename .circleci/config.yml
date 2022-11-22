@@ -36,7 +36,8 @@ parameters:
 workflows:
   lint-pack:
     when:
-      equal: [ main, << pipeline.git.branch >> ]
+      not:
+        equal: [ main, << pipeline.git.branch >> ]
     jobs:
       - orb-tools/pack
       # https://www.shellcheck.net/wiki/SC2002
@@ -67,9 +68,8 @@ workflows:
 
   publish:
     when:
-      matches:
-        pattern: "^v*"
-        value: << pipeline.git.tag >>
+      and: 
+        - matches: { pattern: '/^v[0-9]+\.[0-9]+\.[0-9]+$/', value: << pipeline.git.tag >> }
     jobs:
       - orb-tools/publish:
           context: 
