@@ -32,9 +32,11 @@ parameters:
     type: string
     default: ''
 
-
 workflows:
   lint-pack:
+    when:
+      not:
+        equal: [ main, << pipeline.git.branch >> ]
     jobs:
       - orb-tools/pack
       # https://www.shellcheck.net/wiki/SC2002
@@ -64,16 +66,14 @@ workflows:
                   ignore: main
 
   publish:
+    when:
+      equal: [ main, << pipeline.git.branch >> ]
     jobs:
       - orb-tools/publish:
           context: 
             - dockerhub
             - orb-publishing
             - util
-          filters:
-            branches:
-              only:
-                - main
           orb-name: coda/utils
           pub-type: production
           vcs-type: << pipeline.project.type >>
