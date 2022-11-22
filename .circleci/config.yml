@@ -71,8 +71,6 @@ workflows:
       matches: { pattern: '/^v[0-9]+\.[0-9]+\.[0-9]+$/', value: << pipeline.git.tag >> }
     jobs:
       - orb-tools/publish:
-          requires:
-            - create-tag-on-github-release-page
           context: 
             - dockerhub
             - orb-publishing
