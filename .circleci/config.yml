@@ -32,11 +32,12 @@ parameters:
     type: string
     default: ''
 
+
 workflows:
   lint-pack:
     when:
       not:
-        equal: [ main, << pipeline.git.branch >> ]
+        equal: [ gv-main-branch-filter, << pipeline.git.branch >> ]
     jobs:
       - orb-tools/pack
       # https://www.shellcheck.net/wiki/SC2002
@@ -50,7 +51,7 @@ workflows:
           requires:
             - orb-tools/pack
             - shellcheck/check
-          vcs-type: github
+          vcs-type: << pipeline.project.type >>
       - orb-tools/continue:
           context:
             - dockerhub
@@ -67,9 +68,13 @@ workflows:
 
   publish:
     when:
-      equal: [ main, << pipeline.git.branch >> ]
+      equal: [ gv-main-branch-filter, << pipeline.git.branch >> ]
     jobs:
+      - create-tag-on-github-release-page:
+          type: approval
       - orb-tools/publish:
+          requires:
+            - create-tag-on-github-release-page
           context: 
             - dockerhub
             - orb-publishing
