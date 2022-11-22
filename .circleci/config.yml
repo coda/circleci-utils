@@ -77,3 +77,6 @@ workflows:
           orb-name: coda/utils
           pub-type: production
           vcs-type: << pipeline.project.type >>
+          filters:
+            tags:
+              only: /^v.*/
