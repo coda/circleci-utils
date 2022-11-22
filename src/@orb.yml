@@ -1,11 +1,7 @@
 version: 2.1
-
 description: >
-  Utility orb for Coda
-  Allows for:
-  - Push alerts to opsgenie
-  - Push Slack notifications
-  - Cancel older CI alerts waiting for approval 
-
+  Utility orb for Coda Allows for: - Push alerts to opsgenie - Push Slack
+  notifications - Cancel older CI alerts waiting for approval 
 display:
-  source_url: "https://github.com/coda/circleci-utils"
+  source_url: 'https://github.com/coda/circleci-utils'
+

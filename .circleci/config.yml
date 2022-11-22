@@ -6,10 +6,11 @@ default_build_environment: &default_build_environment
         username: codainternaltools
         password: $DOCKERHUB_PASSWORD
 
+setup: true 
 
 orbs:
   utils: coda/utils@<<pipeline.parameters.dev-orb-version>>
-  orb-tools: circleci/orb-tools@10.0.3
+  orb-tools: circleci/orb-tools@11.5.0
   bats: circleci/bats@1.0
   shellcheck: circleci/shellcheck@2.0
 
@@ -31,115 +32,48 @@ parameters:
     type: string
     default: ''
 
-commands:
-  bootstrap_pipeline_circleci_user:
-    steps:
-      - run:
-          name: Initialize CIRCLE_USERNAME from pipeline
-          command: |
-            echo "export CIRCLE_USERNAME=<< pipeline.parameters.circleci-user >>" >> $BASH_ENV
-            source $BASH_ENV
-
-jobs:
-  integration-test-notify:
-    <<: *default_build_environment
-    steps:
-      - checkout
-      - utils/notify:
-          on_success: true
-
-  integration-test-slack:
-    <<: *default_build_environment
-    steps:
-      - checkout
-      - bootstrap_pipeline_circleci_user
-      - utils/slack-notify-waiting-for-approval:
-          slack_bot_token: ${SLACK_ACCESS_TOKEN}
-
-  integration-test-cancel-older-jobs:
-    <<: *default_build_environment
-    steps:
-      - checkout
-      - utils/cancel-older-awaiting-approvals
 
 workflows:
-  test-pack:
-    unless: << pipeline.parameters.run-integration-tests >>
+  lint-pack:
     jobs:
-      - orb-tools/pack:
-          context:
-            - dockerhub
+      - orb-tools/pack
+      # https://www.shellcheck.net/wiki/SC2002
       - shellcheck/check:
-          context:
-            - dockerhub
-          dir: ./src/scripts
-      - bats/run:
-          context:
-            - dockerhub
-            - slack
-          path: ./src/tests
-      - hold-for-dev-publish:
-          context:
-            - dockerhub
-          type: approval
-          requires:
-            - orb-tools/pack
-            - bats/run
-            - shellcheck/check
-      # Publish development version of the orb.
-      - orb-tools/publish-dev:
-          publish-token-variable: ORB_PUBLISHING_TOKEN
-          context:
+          exclude: 'SC2002'
+      - orb-tools/publish:
+          context: 
             - dockerhub
             - orb-publishing
           orb-name: coda/utils
-          requires: [hold-for-dev-publish]
-      # dev:${CIRCLE_SHA1:0:7} version of your orb
-      - orb-tools/trigger-integration-tests-workflow:
-          name: trigger-integration-dev
-          token-variable: ORB_PUBLISHING_TOKEN
-          context:
-            - dockerhub
-            - orb-publishing
           requires:
-            - orb-tools/publish-dev
-          pipeline-param-map: '{\"run-integration-tests\": true, \"dev-orb-version\": \"dev:${CIRCLE_SHA1:0:7}\", \"circleci-user\": \"${CIRCLE_USERNAME}\"}'
-
-  integration-test_deploy:
-    when: << pipeline.parameters.run-integration-tests >>
-    jobs:
-      - integration-test-notify:
+            - orb-tools/pack
+            - shellcheck/check
+          vcs-type: github
+      - orb-tools/continue:
           context:
             - dockerhub
             - orb-publishing
             - util
             - ops-genie
-      - integration-test-slack:
-          context:
-            - dockerhub
-            - orb-publishing
-            - util
-            - slack
-      - utils/cancel-older-awaiting-approvals:
-          context:
-            - dockerhub
-            - orb-publishing
-            - util
-      - orb-tools/dev-promote-prod-from-commit-subject:
-          orb-name: coda/utils
-          context:
-            - dockerhub
-            - orb-publishing
-            - util
-          publish-token-variable: ORB_PUBLISHING_TOKEN
-          add-pr-comment: false
-          fail-if-semver-not-indicated: true
-          publish-version-tag: false
+          pipeline-number: << pipeline.number >>
           requires:
-            - integration-test-notify
-            - integration-test-slack
-            - utils/cancel-older-awaiting-approvals
+            - orb-tools/publish
+          vcs-type: << pipeline.project.type >>
+          filters:
+              branches:
+                  ignore: main
+
+  publish:
+    jobs:
+      - orb-tools/publish:
+          context: 
+            - dockerhub
+            - orb-publishing
+            - util
           filters:
             branches:
               only:
                 - main
+          orb-name: coda/utils
+          pub-type: production
+          vcs-type: << pipeline.project.type >>
