@@ -8,7 +8,8 @@
 ### How to Publish
 * Create and push a branch with your new features.
 * When ready to publish a new production version, create a Pull Request from from _feature branch_ to `main`.
-* When your branch is merged into `main` create a new release version off of `main`. This can be achieved by going to [circleci-utils](https://github.com/coda/circleci-utils/releases/new) release page and clicking on `Draft a new release`. Make sure the release version begins with `v`. This is version number that will match the new orb version.
+* When your branch is merged into `main` create a new release version off of `main`. This can be achieved by going to [circleci-utils](https://github.com/coda/circleci-utils/releases/new) release page and clicking on `Draft a new release`. 
+Make sure the release version is in the format of `vX.X.X`. This is version number that will match the new orb version.
 
 ### How to Publish Dev Version
 

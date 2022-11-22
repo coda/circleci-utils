@@ -52,7 +52,7 @@ workflows:
             - orb-tools/pack
             - shellcheck/check
           vcs-type: << pipeline.project.type >>
-      - orb-tools/continue:
+      - orb-tools/continue: # continues to .circleci/test-deploy.yml
           context:
             - dockerhub
             - orb-publishing
@@ -69,7 +69,10 @@ workflows:
   publish:
     when: << pipeline.git.tag >>
     jobs:
-      - orb-tools/pack
+      - orb-tools/pack:
+          filters:
+            tags:
+              only: /^v.*/
       - orb-tools/publish:
           requires:
             - orb-tools/pack
