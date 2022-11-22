@@ -69,7 +69,10 @@ workflows:
   publish:
     when: << pipeline.git.tag >>
     jobs:
-      - orb-tools/pack
+      - orb-tools/pack:
+          filters:
+            tags:
+              only: /^v.*/
       - orb-tools/publish:
           requires:
             - orb-tools/pack
