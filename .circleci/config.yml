@@ -37,7 +37,7 @@ workflows:
   lint-pack:
     when:
       not:
-        equal: [ gv-main-branch-filter, << pipeline.git.branch >> ]
+        equal: [ main, << pipeline.git.branch >> ]
     jobs:
       - orb-tools/pack
       # https://www.shellcheck.net/wiki/SC2002
@@ -68,10 +68,8 @@ workflows:
 
   publish:
     when:
-      equal: [ gv-main-branch-filter, << pipeline.git.branch >> ]
+      matches: { pattern: '/^v[0-9]+\.[0-9]+\.[0-9]+$/', value: << pipeline.git.tag >> }
     jobs:
-      - create-tag-on-github-release-page:
-          type: approval
       - orb-tools/publish:
           requires:
             - create-tag-on-github-release-page
