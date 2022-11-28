@@ -7,13 +7,15 @@
 [Example Usage](src/examples/example.yml)
 ### How to Publish
 * Create and push a branch with your new features.
-* When ready to publish a new production version, create a Pull Request from fore _feature branch_ to `main`.
+* When ready to publish a new production version, create a Pull Request from from _feature branch_ to `main`.
+* When your branch is merged into `main` create a new release version off of `main`. This can be achieved by going to [circleci-utils](https://github.com/coda/circleci-utils/releases/new) release page and clicking on `Draft a new release`. 
+Make sure the release version is in the format of `vX.X.X`. This is version number that will match the new orb version.
 
 ### How to Publish Dev Version
 
 Push your branch and CI will trigger dev published version of orb with the commit hash as the version.
 
-### How to Publish Dev VersionManually
+### How to Publish Dev Version Manually
 
 To manually pack your `orb.yml`, you can run `circleci orb pack .  > orb.yml` at the `@orb.yml` level.
 

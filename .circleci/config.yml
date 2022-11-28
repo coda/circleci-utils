@@ -35,6 +35,9 @@ parameters:
 
 workflows:
   lint-pack:
+    when:
+      not:
+        equal: [ main, << pipeline.git.branch >> ]
     jobs:
       - orb-tools/pack
       # https://www.shellcheck.net/wiki/SC2002
@@ -48,8 +51,8 @@ workflows:
           requires:
             - orb-tools/pack
             - shellcheck/check
-          vcs-type: github
-      - orb-tools/continue:
+          vcs-type: << pipeline.project.type >>
+      - orb-tools/continue: # continues to .circleci/test-deploy.yml
           context:
             - dockerhub
             - orb-publishing
@@ -64,16 +67,22 @@ workflows:
                   ignore: main
 
   publish:
+    when: << pipeline.git.tag >>
     jobs:
+      - orb-tools/pack:
+          filters:
+            tags:
+              only: /^v.*/
       - orb-tools/publish:
+          requires:
+            - orb-tools/pack
           context: 
             - dockerhub
             - orb-publishing
             - util
-          filters:
-            branches:
-              only:
-                - main
           orb-name: coda/utils
           pub-type: production
           vcs-type: << pipeline.project.type >>
+          filters:
+            tags:
+              only: /^v.*/

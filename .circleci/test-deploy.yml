@@ -50,6 +50,9 @@ jobs:
 
 workflows:
   test-deploy:
+    when:
+      not:
+        equal: [ main, << pipeline.git.branch >> ]
     jobs:
       - integration-test-notify:
           context:
