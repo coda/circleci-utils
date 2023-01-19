@@ -11,7 +11,7 @@ setup: true
 orbs:
   utils: coda/utils@<<pipeline.parameters.dev-orb-version>>
   orb-tools: circleci/orb-tools@11.5.0
-  bats: circleci/bats@1.0
+  bats: circleci/bats@1.0.1
   shellcheck: circleci/shellcheck@2.0
 
 # Pipeline Parameters
