@@ -38,7 +38,7 @@ steps:
 - run:
     command: |
       echo '{}' | jq '{
-        "message": "[CircleCI] [#\(env.CIRCLE_PREVIOUS_BUILD_NUM)]: workflow \(env.CIRCLE_BRANCH) stage \(env.CIRCLE_STAGE) job \(env.CIRCLE_JOB)",
+        "message": "[CircleCI] \(env.CIRCLE_PROJECT_REPONAME) repo: \(env.CIRCLE_JOB) failed on \(env.CIRCLE_BRANCH) branch",
         "alias": "\(env.CIRCLE_PROJECT_REPONAME)/\(env.CIRCLE_BRANCH)#\(env.CIRCLE_JOB)",
         "description":"See \(env.CIRCLE_BUILD_URL) for more details. ",
         "outcome": "failed",
@@ -65,7 +65,7 @@ steps:
     command: |
       if [ -n "${USER_EMAIL}" ]; then
         cat /tmp/raw-webhook.json | jq --arg USER_EMAIL $USER_EMAIL \
-        '.responders += [{"username": "'$USER_EMAIL'", "type": "user"}, {"name": "ci_alerts", "type": "team"}]' | \
+        '.responders += [{"username": "'$USER_EMAIL'", "type": "user"}, {"name": "buildcop", "type": "team"}]' | \
         jq --arg USER_EMAIL $USER_EMAIL '.details.user = $USER_EMAIL'> /tmp/webhook_temp.json
         mv /tmp/webhook_temp.json /tmp/raw-webhook.json
       fi
