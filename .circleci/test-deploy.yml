@@ -1,7 +1,7 @@
 version: '2.1'
 orbs:
   utils: coda/utils@dev:<<pipeline.git.revision>>
-  orb-tools: circleci/orb-tools@11.1
+  orb-tools: circleci/orb-tools@12.3
   bats: circleci/bats@1.0
 
 default_build_environment: &default_build_environment
