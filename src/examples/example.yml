@@ -1,5 +1,5 @@
 usage:
-  version: 2.1
+  version: 2.2
   orbs:
     utils: coda/utils@<version>
   jobs:
@@ -19,4 +19,3 @@ usage:
         - utils/slack-notify-waiting-for-approval:
             coda_prod_token: ${CODA_PROD_TOKEN}
             slack_bot_token: ${SLACK_ACCESS_TOKEN}
-        - utils/bootstrap-aws-context-creds
