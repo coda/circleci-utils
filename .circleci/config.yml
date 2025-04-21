@@ -6,7 +6,7 @@ default_build_environment: &default_build_environment
         username: codainternaltools
         password: $DOCKERHUB_PASSWORD
 
-setup: true 
+setup: true
 
 orbs:
   utils: coda/utils@<<pipeline.parameters.dev-orb-version>>
@@ -30,21 +30,20 @@ parameters:
   circleci-user:
     description: The user who published orb changes
     type: string
-    default: ''
-
+    default: ""
 
 workflows:
   lint-pack:
     when:
       not:
-        equal: [ main, << pipeline.git.branch >> ]
+        equal: [main, << pipeline.git.branch >>]
     jobs:
       - orb-tools/pack
       # https://www.shellcheck.net/wiki/SC2002
       - shellcheck/check:
-          exclude: 'SC2002'
+          exclude: "SC2002"
       - orb-tools/publish:
-          context: 
+          context:
             - dockerhub
             - orb-publishing
           orb-name: coda/utils
@@ -63,8 +62,8 @@ workflows:
             - orb-tools/publish
           vcs-type: << pipeline.project.type >>
           filters:
-              branches:
-                  ignore: main
+            branches:
+              ignore: main
 
   publish:
     when: << pipeline.git.tag >>
@@ -76,7 +75,7 @@ workflows:
       - orb-tools/publish:
           requires:
             - orb-tools/pack
-          context: 
+          context:
             - dockerhub
             - orb-publishing
             - util

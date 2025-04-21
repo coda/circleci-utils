@@ -1,7 +1,0 @@
-description: |
-  Each CI context can inject an AWS credential to the environment.
-  Unpack and combine into a single file inside ~/.aws/credentials
-steps:
-  - run:
-      name: Iterate through all context variables and unpack them
-      command: <<include(scripts/bootstrap_aws_context_creds.sh)>>
