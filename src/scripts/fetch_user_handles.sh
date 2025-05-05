@@ -10,7 +10,8 @@ function run_main() {
       echo "${CIRCLE_USERNAME} has incorrect git username -- please add -codaio and update in go/roster"
       exit 0
     fi
-     # shellcheck disable=SC2001
+    
+    # shellcheck disable=SC2001
     USER_EMAIL=$(echo "${CIRCLE_USERNAME}" | sed "s/${GITHUB_SUFFIX}$/@${EMAIL_DOMAIN}/")
 
     if [ -n "$SLACK_BOT_TOKEN" ]; then

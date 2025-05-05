@@ -8,8 +8,7 @@ usage:
         - image: cimg/base:stable
       steps:
         - checkout
-        - utils/notify:
-            on_failure: true
+        - utils/notify-on-failure
   workflows:
     use-my-orb:
       jobs:

@@ -1,0 +1,72 @@
+description: Send build failures to Slack, with detailed information
+parameters:
+  slack_bot_token:
+    type: string
+    description: |
+      Token used by Slack bot application.   Must have scopes `users:read`, `users:read.email`, and `chat:write`.
+    default: ${SLACK_ACCESS_TOKEN}
+steps:
+  - run:
+      name: Set variables
+      command: |
+        echo 'export SLACK_ACCESS_TOKEN="<<parameters.slack_bot_token>>"' >> "$BASH_ENV"
+        echo 'export SLACK_DEFAULT_CHANNEL="ops-build-cops"' >> "$BASH_ENV"
+  - run:
+      name: Fetch User Information
+      command: <<include(scripts/fetch_user_handles.sh)>>
+  - run:
+      name: Get diff url
+      command: <<include(scripts/get_lkg_hash.sh)>>
+      when: on_fail
+  - run:
+      command: |
+        echo 'export SLACK_MESSAGE="[CircleCI] ${CIRCLE_JOB} failed on ${CIRCLE_BRANCH} branch"' >> "$BASH_ENV"
+      name: Bundle build info into message
+      when: on_fail
+  - run:
+      command: |
+        if [ -n "${DIFF_URL}" ]; then
+          echo "Compare with last passing commit: ${DIFF_URL}" >> "$BASH_ENV"
+        fi
+      name: Add latest git hash to message
+      when: on_fail
+  - slack/notify_on_fail_with_template:
+      channel: ${SLACK_USER_ID}
+      event: fail
+      template: basic_fail_1
+
+  # - run:
+  #     name: Send Slack Message
+  #     command: |
+  #       set -eo pipefail
+  #       curl --fail -X POST -H "Authorization: Bearer $SLACK_ACCESS_TOKEN" \
+  #         -H "Content-Type: application/json" -d \
+  #         "{ \
+  #           \"channel\": \"${SLACK_USER_ID}\", \
+  #           \"attachments\": [ \
+  #             { \
+  #               \"text\": \"${SLACK_MESSAGE}\", \
+  #               \"fields\": [ \
+  #                 { \
+  #                   \"title\": \"Project\", \
+  #                   \"value\": \"${CIRCLE_PROJECT_REPONAME}\", \
+  #                   \"short\": true \
+  #                 }, \
+  #                 { \
+  #                   \"title\": \"Job Number\", \
+  #                   \"value\": \"${CIRCLE_BUILD_NUM}\", \
+  #                   \"short\": true \
+  #                 } \
+  #               ], \
+  #               \"actions\": [ \
+  #                 { \
+  #                   \"type\": \"button\", \
+  #                   \"text\": \"Visit Workflow\", \
+  #                   \"url\": \"https://circleci.com/workflow-run/${CIRCLE_WORKFLOW_ID}\" \
+  #                 } \
+  #               ], \
+  #               \"color\": \"#f46a54\" \
+  #             } \
+  #           ] \
+  #         }" \
+  #         'https://slack.com/api/chat.postMessage'
