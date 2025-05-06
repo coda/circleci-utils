@@ -1,4 +1,4 @@
-version: '2.1'
+version: "2.1"
 orbs:
   utils: coda/utils@dev:<<pipeline.git.revision>>
   orb-tools: circleci/orb-tools@11.1
@@ -15,7 +15,7 @@ parameters:
   circleci-user:
     description: The user who published orb changes
     type: string
-    default: ''
+    default: ""
 
 commands:
   bootstrap_pipeline_circleci_user:
@@ -27,13 +27,6 @@ commands:
             source $BASH_ENV
 
 jobs:
-  integration-test-notify:
-    <<: *default_build_environment
-    steps:
-      - checkout
-      - utils/notify:
-          on_success: true
-
   integration-test-slack:
     <<: *default_build_environment
     steps:
@@ -52,14 +45,8 @@ workflows:
   test-deploy:
     when:
       not:
-        equal: [ main, << pipeline.git.branch >> ]
+        equal: [main, << pipeline.git.branch >>]
     jobs:
-      - integration-test-notify:
-          context:
-            - dockerhub
-            - orb-publishing
-            - util
-            - ops-genie
       - integration-test-slack:
           context:
             - dockerhub
@@ -71,5 +58,3 @@ workflows:
             - dockerhub
             - orb-publishing
             - util
-            - ops-genie
-

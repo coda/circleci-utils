@@ -56,7 +56,6 @@ workflows:
             - dockerhub
             - orb-publishing
             - util
-            - ops-genie
           pipeline-number: << pipeline.number >>
           requires:
             - orb-tools/publish
